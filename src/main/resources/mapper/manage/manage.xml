@@ -5,15 +5,15 @@
 <mapper namespace="com.ict.teamProject.diary.ManageMapper">
 	<!-- 다이어리 내용 가져오기 -->
 	<select id="findDiaryById" parameterType="String" resultType="DiaryDto">
-		SELECT * FROM DIARY WHERE DIARYID = #{UserNDate}
+		SELECT * FROM diary WHERE DIARYID = #{UserNDate}
 	</select>
 	<!-- 다이어리 사진 가져오기 -->
 	<select id="findDiaryImgUrlsByDiaryId" parameterType="String" resultType="String">
-		SELECT DIARY_IMAGEPATH FROM DIARY_IMAGE WHERE DIARYID = #{diaryId}
+		SELECT DIARY_IMAGEPATH FROM diary_image WHERE DIARYID = #{diaryId}
 	</select>
 	<!-- 다이어리 텍스트 저장 -->
 	<insert id="uploadDiaryById" parameterType="DiaryDto">
-		INSERT INTO DIARY(DIARYID, ID, DIARY_CONTENT, STRESS) VALUES(#{diaryId}, #{id},#{diary_content},#{emotion})
+		INSERT INTO diary(DIARYID, ID, DIARY_CONTENT, STRESS) VALUES(#{diaryId}, #{id},#{diary_content},#{emotion})
 	</insert>
 	<!-- 다이어리 이미지 저장 -->
 	<update id="uploadDiaryImageById" parameterType="list">
@@ -25,7 +25,7 @@
 	
 	<!-- 유저가 작성한 모든 텍스트 가져오기 -->
 	<select id="findAllusertext" parameterType="String" resultType="DiaryDto">
-		SELECT * FROM DIARY WHERE id = #{id}
+		SELECT * FROM diary WHERE id = #{id}
 	</select>	
 	
 </mapper>

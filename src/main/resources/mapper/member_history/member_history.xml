@@ -16,7 +16,7 @@
 		
 	<!-- 게시글 전체 뿌리기 -->
 	 <select id="findAll" parameterType="Map" resultType="MemberHistoryDto">
-	 	SELECT * FROM MEMBER_HISTORY WHERE ID = #{id} ORDER BY UPDATE_DAY DESC
+	 	SELECT * FROM member_history WHERE ID = #{id} ORDER BY UPDATE_DAY DESC
 	 </select>
 	
 

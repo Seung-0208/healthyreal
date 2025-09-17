@@ -25,7 +25,6 @@ import com.ict.teamProject.member.service.MemberDto;
 import com.ict.teamProject.member.service.MemberManageDto;
 import com.ict.teamProject.member.service.MemberService;
 
-import oracle.jdbc.OracleDatabaseException;
 
 import org.springframework.ui.Model;
 

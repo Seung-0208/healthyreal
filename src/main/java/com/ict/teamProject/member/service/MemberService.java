@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import com.ict.teamProject.member.service.impl.MemberMapper;
 
-import oracle.jdbc.OracleDatabaseException;
 
 @Service
 public class MemberService {

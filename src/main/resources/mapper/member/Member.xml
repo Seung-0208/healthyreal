@@ -20,7 +20,7 @@
 	</resultMap>
  
 	<insert id="saveMember" parameterType="MemberDto" useGeneratedKeys="true" keyProperty="id">
-		 INSERT INTO member(id, pwd, name, gender, b_day, tel, userAddress, height, weight, goal_No, regidate, authority) VALUES (#{id}, #{pwd}, #{name}, #{gender}, #{b_day}, #{tel}, #{userAddress}, #{height}, #{weight}, #{goal_No}, default , #{authority}) 
+		 INSERT INTO member(id, pwd, name, gender, b_day, tel, user_address, height, weight, goal_no, regidate, authority) VALUES (#{id}, #{pwd}, #{name}, #{gender}, #{b_day}, #{tel}, #{userAddress}, #{height}, #{weight}, #{goal_No}, default , #{authority})
 	</insert>
 		<!-- INSERT INTO member VALUES (?, ?, ?, 'M', ?, 'seoul', ?, ?, '1', SYSDATE); -->
 	<select id="checkPhoneNumber" parameterType="string" resultType="boolean">
@@ -64,7 +64,7 @@
     WEIGHT = #{weight,jdbcType=DOUBLE},
     GOAL_NO = #{goal_No},
     TEL = #{tel},
-    USERADDRESS = #{userAddress}
+    user_address = #{userAddress}
     WHERE id = #{id}
 	</update>
 	
@@ -88,32 +88,32 @@
 	
 	<!-- FMC 토큰 저장용 -->
 	<insert id="saveFMCToken" parameterType="map">
-	  INSERT INTO FIREBASE VALUES(#{id}, #{token})
+	  INSERT INTO firebase VALUES(#{id}, #{token})
 	</insert>
 	
 	<!-- FMC 토큰 삭제용 -->
 	<delete id="deleteFMCToken" parameterType="String">
-	  DELETE FIREBASE WHERE ID=#{id}
+	  DELETE firebase WHERE ID=#{id}
 	</delete>
 	
 	<!-- FCM 토큰 불러오기용 -->
 	<select id="findFMCTokenById" parameterType="String">
-	  SELECT NOTIC_TOKEN FROM FIREBASE WHERE ID = #{id}
+	  SELECT NOTIC_TOKEN FROM firebase WHERE ID = #{id}
 	</select>
 	
 	<select id="getUserAddress" parameterType="String">
-		SELECT ID, USERADDRESS FROM MEMBER WHERE ID = #{id}
+		SELECT ID, user_address FROM member WHERE ID = #{id}
 	</select>
 	
 	<select id="findByMemberId" parameterType="string" resultType="MemberDto">
     SELECT id, gender, weight, height, goal_No, tel, userAddress
-    FROM Member
+    FROM member
     WHERE id = #{id}
 	</select>
 	
 	<select id="findMemberById" parameterType="string" resultType="MemberDto">
 	    SELECT b_day, gender, weight, height, goal_No, tel, userAddress
-	    FROM Member
+	    FROM member
 	    WHERE id = #{id}
 	</select>
 	
@@ -140,23 +140,23 @@
 	    SELECT DISTINCT m.*, g.GOAL_NAME
 		FROM member m 
 		JOIN GOAL g on m.GOAL_NO = g.GOAL_NO
-		WHERE M.ID NOT IN (SELECT CL_ID FROM COMPLAIN_LIST)
+		WHERE M.ID NOT IN (SELECT CL_ID FROM complain_list)
 		ORDER BY m.REGIDATE DESC
 	</select>
 	<!-- 신고당한 모든 유저 가져오기 -->
 	<select id="findAllComplainedUsers" resultType="MemberManageDto">
-		SELECT * FROM COMPLAIN_LIST
+		SELECT * FROM complain_list
 	</select>
 	<!-- 블랙리스트에서 유저 해제하기 -->
 	<delete id="deleteUserFromComplainList" parameterType="String">
-		DELETE COMPLAIN_LIST WHERE CL_ID = #{id}
+		DELETE complain_list WHERE CL_ID = #{id}
 	</delete>
 	<!-- 관리자 페이지에서 유저 한번에 신고하기 -->
 	<insert id="addUserToComplainList" parameterType="MemberManageDto">
-		INSERT INTO COMPLAIN_LIST(ID, CL_ID, CL_REASON, CL_DATE, CL_TYPE) VALUES(#{id},#{cl_id},#{cl_reason},SYSDATE, 0)
+		INSERT INTO complain_list(ID, CL_ID, CL_REASON, CL_DATE, CL_TYPE) VALUES(#{id},#{cl_id},#{cl_reason},SYSDATE, 0)
 	</insert>
 	
 	<select id="defaultArea" parameterType="String" resultType="String">
-		SELECT USERADDRESS FROM MEMBER WHERE ID = #{id}
+		SELECT user_address FROM member WHERE ID = #{id}
 	</select>
 </mapper>

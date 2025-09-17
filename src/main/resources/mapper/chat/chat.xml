@@ -17,45 +17,45 @@
 	
 	<!-- 메세지 입력 -->
 	<insert id="save" parameterType="Map">
-		INSERT INTO CHATMESSAGE VALUES(SEQ_CHATMESSAGE.NEXTVAL,1,#{id},#{ruser},0,#{content},'N',SYSDATE)
+		INSERT INTO (room_type, id, receive_user, type_no ,message_content, message_notice, message_senddate) VALUES(1,#{id},#{ruser},0,#{content},'N',current_timestamp)
 	</insert>
 	
  	<!-- 메세지 가져오기 -->
 	 <select id="findChatdata" parameterType="map" resultType="ChatDto">
-	 	SELECT * FROM CHATMESSAGE WHERE ID = #{id} and RECEIVE_USER = #{ruser}
+	 	SELECT * FROM chatmessage WHERE ID = #{id} and RECEIVE_USER = #{ruser}
 	 </select>
 	 
 	<select id="findChatingPerson" parameterType="String" resultType="ChatDto">
 	    SELECT * FROM (
 	        SELECT *, ROW_NUMBER() OVER (PARTITION BY RECEIVE_USER ORDER BY ID) as rn 
-	        FROM CHATMESSAGE WHERE ID = #{id}
+	        FROM chatmessage WHERE ID = #{id}
 	    ) t 
 	    WHERE rn = 1
 	</select>
 
  	<!-- 모든 메세지 가져오기 -->
 	 <select id="allChat" parameterType="String" resultMap="ChatResult">
-	 	SELECT * FROM CHATMESSAGE WHERE ID = #{id} or RECEIVE_USER = #{id} and ROOM_TYPE = 1 ORDER BY MESSAGE_SENDDATE ASC
+	 	SELECT * FROM chatmessage WHERE ID = #{id} or RECEIVE_USER = #{id} and ROOM_TYPE = 1 ORDER BY MESSAGE_SENDDATE ASC
 	 </select>
 	 
 	 <!-- 메이트 방 모든 메세지 가져오기 -->
 	 <select id="allMateChat" parameterType="map" resultMap="ChatResult">
-	 	SELECT * FROM CHATMESSAGE WHERE ROOM_TYPE = 3 and TYPE_NO = #{mateNo} ORDER BY MESSAGE_SENDDATE ASC
+	 	SELECT * FROM chatmessage WHERE ROOM_TYPE = 3 and TYPE_NO = #{mateNo} ORDER BY MESSAGE_SENDDATE ASC
 	 </select>
 	 
  	<!-- 메이트 챗 입력 -->
 	<insert id="mateIn" parameterType="Map">
-		INSERT INTO CHATMESSAGE VALUES(SEQ_CHATMESSAGE.NEXTVAL,3,#{id},#{ruser},#{mateNo},#{content},'N',SYSDATE)
+		INSERT INTO chatmessage(room_type, id, receive_user, type_no ,message_content, message_notice, message_senddate) VALUES(3,#{id},#{ruser},#{mateNo},#{content},'N',current_timestamp)
 	</insert>
 	
 	 <!-- 챌린지 방 모든 메세지 가져오기 -->
 	 <select id="allChallChat" parameterType="map" resultMap="ChatResult">
-	 	SELECT * FROM CHATMESSAGE WHERE ROOM_TYPE = 2 and TYPE_NO = #{mateNo} ORDER BY MESSAGE_SENDDATE ASC
+	 	SELECT * FROM chatmessage WHERE ROOM_TYPE = 2 and TYPE_NO = #{mateNo} ORDER BY MESSAGE_SENDDATE ASC
 	 </select>
 	 
  	<!-- 챌린지 챗 입력 -->
 	<insert id="challIn" parameterType="Map">
-		INSERT INTO CHATMESSAGE VALUES(SEQ_CHATMESSAGE.NEXTVAL,2,#{id},#{ruser},#{mateNo},#{content},'N',SYSDATE)
+		INSERT INTO chatmessage(room_type, id, receive_user, type_no ,message_content, message_notice, message_senddate) VALUES(2,#{id},#{ruser},#{mateNo},#{content},'N',current_timestamp)
 	</insert>
 
 	

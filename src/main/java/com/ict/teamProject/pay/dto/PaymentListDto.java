@@ -17,10 +17,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentListDto {
-	private String id;
-	private Timestamp payDate;
-	private int payType;
-	private String payName;
-	private int payPrice;
+	private String id;//
+	private Timestamp payDate;//
+	private int payType;//
+	private String payName;//
+	private int payPrice;//
 	private String payMethod;
 }

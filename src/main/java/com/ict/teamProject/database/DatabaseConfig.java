@@ -13,7 +13,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @Configuration
 public class DatabaseConfig {
 	
-	//////////데이타 베이스 연결정보 주입
+	//데이타 베이스 연결정보 주입
 	@Value("${driver-class-name}")
 	private String driver;
 	@Value("${oracle-url}")

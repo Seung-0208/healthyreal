@@ -32,8 +32,8 @@
        SUM(fl.cholesterol) AS total_cholesterol
 	FROM actuality_eating ae
 	JOIN foodlist fl ON INSTR(',' || ae.ae_foodname || ',', ',' || fl.foodname || ',') > 0
-	WHERE ae.id = #{id} AND TO_CHAR(ae.ae_date, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
-	GROUP BY ae.ae_diettype
+	WHERE ae.id = #{id} AND DATE_FORMAT(ae.ae_date, '%Y-%m-%d') = DATE_FORMAT(current_timestamp, '%Y-%m-%d')
+		GROUP BY ae.ae_diettype
 	ORDER BY 
 	    CASE 
 	        WHEN ae.ae_diettype = '아침' THEN 1
@@ -43,14 +43,14 @@
 	</select>
 	
 	<select id="checkdailydiet" resultType="int">
-		SELECT count(*) FROM actuality_eating WHERE id = #{id} And TO_CHAR(ae_date, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD') AND ae_dietType = #{ae_diettype}
+		SELECT count(*) FROM actuality_eating WHERE id = #{id} And DATE_FORMAT(ae_date, '%Y-%m-%d')  = DATE_FORMAT(current_timestamp, '%Y-%m-%d')  AND ae_dietType = #{ae_diettype}
 	</select>	
 	
 	<update id="updateActuality" parameterType="Map">
-		UPDATE actuality_eating SET ae_foodname = #{ae_foodname} WHERE id = #{id} and ae_diettype = #{ae_diettype} And TO_CHAR(ae_date, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+		UPDATE actuality_eating SET ae_foodname = #{ae_foodname} WHERE id = #{id} and ae_diettype = #{ae_diettype} And DATE_FORMAT(ae_date, '%Y-%m-%d')  = DATE_FORMAT(current_timestamp, '%Y-%m-%d')
 	</update>
 	
 	<select id="getEatting" parameterType="String" resultType="map">
-		SELECT * FROM actuality_eating WHERE id = #{id} AND TRUNC(AE_DATE) = TRUNC(SYSDATE)
+		SELECT * FROM actuality_eating WHERE id = #{id} AND DATE(AE_DATE) = DATE(NOW())
 	</select>	
 </mapper>

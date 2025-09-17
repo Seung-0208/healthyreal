@@ -23,7 +23,7 @@ public class WebSocketServer extends TextWebSocketHandler {
 		//컬렉션에 연결된 클라이언트 추가
 		clients.put(session.getId(), session);
 		System.out.println(session.getId()+"연결 되었습니다.");
-		
+
 	    // 모든 클라이언트에게 메시지 전송
 	    TextMessage message = new TextMessage(session.getId() + "연결 되었습니다.");
 	    for (WebSocketSession client : clients.values()) {
@@ -40,7 +40,7 @@ public class WebSocketServer extends TextWebSocketHandler {
 		for(WebSocketSession client: clients.values()) {
 			if(!session.getId().equals(client.getId())) {
 				//받은 메세지를 그대로 접속한 모든 인원에게 푸쉬
-				client.sendMessage(message);
+				client.sendMessage(message); //client = WebSocketSession
 			}
 		}
 	}

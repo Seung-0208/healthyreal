@@ -28,14 +28,14 @@ public class MessageService {
     private MemberMapper memberMapper;
     
     public MessageService() {
-        this.defaultMessageService = NurigoApp.INSTANCE.initialize("NCSXRLX6GSEOQVLX", "ZAALEQTX05IBON19YYVVBZNVPZDYCFI7", "https://api.coolsms.co.kr");
+        this.defaultMessageService = NurigoApp.INSTANCE.initialize("NCSF4ZKUVND676F9", "CXOUW82MH3YMGI9VBPY0WBKVPZCGWMS5", "https://api.coolsms.co.kr");
     }
 
     public String sendAuthCode(String phone) {
         String authCode = generateAuthCode();
-
+        System.out.println("authCode: "+authCode);
         Message message = new Message();
-        message.setFrom("01092561065");
+        message.setFrom("01040507370");
         message.setTo(phone);
         String authMessage = "[HealthyReal] 인증 코드는 " + "["+authCode+"]" + "입니다. 5분 이내에 입력해주세요.";
         message.setText(authMessage);

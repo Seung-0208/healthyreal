@@ -7,10 +7,10 @@
 		SELECT fl.*, r.RECIPE_TITLE, r.RECIPE_URL, r.RECIPE_IMG, r.RECIPECODE, r.RECIPE_SEQ, ri.INGREDIENT, ri.RI_AMOUNT 
 		FROM 
 		    (SELECT FOODNAME, CATEGORY 
-		    FROM FoodList 
+		    FROM foodlist 
 		    WHERE category = #{category}) fl 
-		JOIN RECIPE r ON fl.foodname = r.foodname
-		JOIN RECIPE_INGREDIENTS ri ON r.recipecode = ri.recipecode
+		JOIN recipe r ON fl.foodname = r.foodname
+		JOIN recipe_ingredients ri ON r.recipecode = ri.recipecode
 		WHERE NOT EXISTS 
 		    (SELECT 1
 		    FROM member_hatefood mh
@@ -28,7 +28,7 @@
 		    AND ri.INGREDIENT LIKE '%' || ai.ALLERGY_NAME || '%')
 		AND r.recipecode NOT IN (
 		    SELECT ri.recipecode
-		    FROM RECIPE_INGREDIENTS ri
+		    FROM recipe_ingredients ri
 		    WHERE EXISTS (
 		        SELECT 1
 		        FROM member_hatefood mh
@@ -50,10 +50,10 @@
 		SELECT fl.*, r.RECIPE_TITLE, r.RECIPE_URL, r.RECIPE_IMG, r.RECIPECODE, r.RECIPE_SEQ, ri.INGREDIENT, ri.RI_AMOUNT 
 		FROM 
 		    (SELECT FOODNAME, CATEGORY 
-		    FROM FoodList 
+		    FROM foodlist 
 		    ) fl 
-		JOIN RECIPE r ON fl.foodname = r.foodname
-		JOIN RECIPE_INGREDIENTS ri ON r.recipecode = ri.recipecode
+		JOIN recipe r ON fl.foodname = r.foodname
+		JOIN recipe_ingredients ri ON r.recipecode = ri.recipecode
 		WHERE NOT EXISTS 
 		    (SELECT 1
 		    FROM member_hatefood mh
@@ -71,7 +71,7 @@
 		    AND ri.INGREDIENT LIKE '%' || ai.ALLERGY_NAME || '%')
 		AND r.recipecode NOT IN (
 		    SELECT ri.recipecode
-		    FROM RECIPE_INGREDIENTS ri
+		    FROM recipe_ingredients ri
 		    WHERE EXISTS (
 		        SELECT 1
 		        FROM member_hatefood mh
@@ -90,6 +90,6 @@
 	</select>
 	
 	<select id="getfoodinfo" parameterType="String">
-		SELECT FOODNAME as foodname, CALORY as calory, Carbohydrate as carbohydrate, protein as protein, fat as fat, sodium as sodium, cholesterol as cholesterol FROM FOODLIST WHERE FOODNAME = #{foodname}
+		SELECT FOODNAME as foodname, CALORY as calory, Carbohydrate as carbohydrate, protein as protein, fat as fat, sodium as sodium, cholesterol as cholesterol FROM foodlist WHERE FOODNAME = #{foodname}
 	</select>
 </mapper>
