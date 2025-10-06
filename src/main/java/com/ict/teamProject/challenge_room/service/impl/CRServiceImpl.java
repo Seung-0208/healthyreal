@@ -70,12 +70,12 @@ public class CRServiceImpl implements CRService<CRDto> {
 	}
 
 	@Override
-	public Map findmyData(String id) {
+	public Map<String, Object> findmyData(String id) {
 		return mapper.findmyData(id);
 	}
 
 	@Override
-	public List participantsdata(int room) {
+	public List<Map<String, Object>> participantsdata(int room) {
 		return mapper.participantsdata(room);
 	}
 

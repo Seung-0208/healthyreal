@@ -29,9 +29,9 @@ public interface CRService<T> {
 
 	void deletep(String id);
 
-	Map findmyData(String id);
+	Map<String, Object> findmyData(String id);
 
-	List participantsdata(int i);
+	List<Map<String, Object>> participantsdata(int i);
 
 	int join(CPDto dto);
 
@@ -39,7 +39,7 @@ public interface CRService<T> {
 
 	String selectManager(int room);
 
-	Map findGoal(String id);
+	Map<String, Object> findGoal(String id);
 
 	void insertImpl(ImplDto dto);
 
@@ -49,7 +49,7 @@ public interface CRService<T> {
 
 	ImplDto findImplAll(String id);
 
-	List implcal(int challNo);
+	List<ImplDto> implcal(int challNo);
 
 	List<String> getId(int challNo);
 
@@ -68,7 +68,7 @@ public interface CRService<T> {
 
 	void updateEattingImpl(ImplDto dto);
 
-	void implinsert(Map map);
+	void implinsert(Map<String, Object> map);
 
 	List<SuccessPeopleDto> successPeople(int challNo);
 

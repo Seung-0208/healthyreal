@@ -38,15 +38,25 @@ public class ManageController {
 	//일기 내용을 DB에 저장하기 위한 메소드
 	@PostMapping("/diary/upload")
 	public int uploadDiary(@RequestParam Map map, @RequestParam(name="files",required = false) MultipartFile[] files) {
+		System.out.println("=== 다이어리 업로드 시작 ===");
+		System.out.println("받은 파라미터 전체: " + map);
 		System.out.println("이미지 파일 확인:" + files);
 		System.out.println("diary id 확인:" + String.valueOf(map.get("diaryId")));
+		System.out.println("id 확인:" + String.valueOf(map.get("id")));
+		System.out.println("diary_content 확인:" + String.valueOf(map.get("diary_content")));
+		System.out.println("stress 확인:" + String.valueOf(map.get("stress")));
+		System.out.println("emotion 확인:" + String.valueOf(map.get("emotion")));
+		
 		//다이어리 텍스트 저장
 		DiaryDto diary = new DiaryDto().builder()
 						.id(String.valueOf(map.get("id")))
 						.diaryId(String.valueOf(map.get("diaryId")))
 						.diary_content(String.valueOf(map.get("diary_content")))
+						.stress(Float.parseFloat(String.valueOf(map.get("stress"))))
 						.emotion(String.valueOf(map.get("emotion")))
 						.build();
+		
+		System.out.println("생성된 DiaryDto: " + diary);
 		
 		//다이어리 사진 저장
 		List<DiaryImagesDto> imgs = new ArrayList<DiaryImagesDto>();
