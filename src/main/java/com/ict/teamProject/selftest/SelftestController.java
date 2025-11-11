@@ -7,6 +7,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 
 
@@ -69,17 +72,23 @@ public class SelftestController {
 	}
 	
 	@PostMapping("/SaveMember/HateFood")
-	public void saveMemberHateFood(@RequestBody Map map) {	    
+	public void saveMemberHateFood(@RequestBody Map map) {    
 		System.out.println("들어온값:"+map);
 		String id = (String) map.get("id");
 		int affected = service.deleteAllHateFood(id);
 		String hatefoods = (String) map.get("hatefoods");
-		String[] hatefoodArray = hatefoods.split(",");
-		System.out.println("싫어하는 음식 목록:"+hatefoodArray);
-	    for (String hatefood : hatefoodArray) {
-	    	int hatefoodInt = Integer.parseInt(hatefood.trim());
-	        service.saveMemberHateFood(id, hatefoodInt);
-	    }
+		String[] hatefoodArray = hatefoods != null ? hatefoods.split(",") : new String[0];
+
+		// 중복 제거 및 공백/빈값 필터링
+		Set<String> uniqueHateFoods = new HashSet<>(Arrays.asList(hatefoodArray));
+		for (String hatefoodNo : uniqueHateFoods) {
+			if (hatefoodNo != null) {
+				String trimmed = hatefoodNo.trim();
+				if (!trimmed.isEmpty()) {
+					service.saveMemberHateFood(id, Integer.parseInt(trimmed));
+				}
+			}
+		}
 	}
 	
 	@GetMapping("/GetMember/Allergy")

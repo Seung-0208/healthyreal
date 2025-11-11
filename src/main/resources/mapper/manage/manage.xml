@@ -5,20 +5,20 @@
 <mapper namespace="com.ict.teamProject.diary.ManageMapper">
 	<!-- 다이어리 내용 가져오기 -->
 	<select id="findDiaryById" parameterType="String" resultType="DiaryDto">
-		SELECT * FROM diary WHERE DIARYID = #{UserNDate}
+		SELECT * FROM diary WHERE diary_id = #{UserNDate}
 	</select>
 	<!-- 다이어리 사진 가져오기 -->
 	<select id="findDiaryImgUrlsByDiaryId" parameterType="String" resultType="String">
-		SELECT DIARY_IMAGEPATH FROM diary_image WHERE DIARYID = #{diaryId}
+		SELECT diary_image_path FROM diary_image WHERE diary_id = #{diaryId}
 	</select>
 	<!-- 다이어리 텍스트 저장 -->
 	<insert id="uploadDiaryById" parameterType="DiaryDto">
-		INSERT INTO diary(DIARYID, ID, DIARY_CONTENT, STRESS) VALUES(#{diaryId}, #{id},#{diary_content},#{emotion})
+		INSERT INTO diary(diary_id, id, diary_content, stress, emotion, diary_postdate) VALUES(#{diaryId}, #{id}, #{diary_content}, #{stress}, #{emotion}, NOW())
 	</insert>
 	<!-- 다이어리 이미지 저장 -->
 	<update id="uploadDiaryImageById" parameterType="list">
 		<foreach collection="list" item="item" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
-			INTO diary_image(DIARYID, IMAGETYPE, DIARY_IMAGEPATH, DIARY_IMAGENAME)
+			INTO diary_image(diary_id, image_type, diary_image_path, image_name)
 			VALUES(#{item.diaryId}, 1, #{item.imgUrl}, #{item.name})
 		</foreach>
 	</update>

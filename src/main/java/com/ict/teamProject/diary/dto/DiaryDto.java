@@ -24,5 +24,6 @@ public class DiaryDto {
 	private String diary_content;
 	private float stress;
 	private String emotion;
+	private String diary_postdate;
 	private List<String> imgUrls;
 }

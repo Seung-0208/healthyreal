@@ -34,9 +34,9 @@ public interface CRMapper {
 
 	void deletep(String id);
 	
-	Map findmyData(String id);
+	Map<String, Object> findmyData(String id);
 
-	List participantsdata(int room);
+	List<Map<String, Object>> participantsdata(int room);
 
 	int join(CPDto dto);
 
