@@ -6,8 +6,8 @@ pipeline {
         DOCKERFILE_PATH = 'Dockerfile'
         PROJECT_PATH = "back"
         REMOTE_USER = 'ubuntu'
-        REMOTE_HOST = '13.124.109.82'
-        REMOTE_PATH = '/home/ubuntu/devops-midterm'
+        REMOTE_HOST = '13.124.32.119'
+        REMOTE_PATH = '/home/ubuntu/develop'
     }
 
     stages {
@@ -17,6 +17,7 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} << EOF
                             set -e
+                            mkdir -p ${REMOTE_PATH}/${PROJECT_PATH}
                             cd ${REMOTE_PATH}/${PROJECT_PATH}
 
                             echo "Updating code..."
