@@ -17,8 +17,8 @@ FROM nginx:stable-alpine
 # 빌드 산출물 복사
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# 커스텀 nginx.conf 복사
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+# 커스텀 nginx 템플릿 복사 (envsubst 사용)
+COPY ./nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 
