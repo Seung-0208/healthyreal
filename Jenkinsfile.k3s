@@ -6,30 +6,20 @@ pipeline {
         timestamps()
     }
 
-    parameters {
-        string(name: 'IMAGE_NAME', defaultValue: 'healthyreal-vue', description: '이미지 이름')
-        string(name: 'K8S_NAMESPACE', defaultValue: 'healthyreal', description: '배포 네임스페이스')
-        string(name: 'K8S_CONTEXT', defaultValue: 'your-kube-context', description: 'kubectl context')
-        string(name: 'SONAR_PROJECT_KEY', defaultValue: 'healthyreal-front', description: 'SonarQube project key')
-        string(name: 'SONAR_HOST_URL', defaultValue: 'http://3.39.158.19:9000', description: 'SonarQube Server URL')  // 추가
-        string(name: 'K3S_NODE_IP', defaultValue: '', description: 'k3s 설치치 IP (Prometheus 스크랩용)')
-    }
-
     environment {
-        IMAGE_TAG = "${env.GIT_COMMIT?.take(7) ?: 'dev'}"
-        DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
-        KUBECONFIG_CREDENTIALS = 'kubeconfig-credentials-id'
-        GITHUB_CREDENTIALS     = 'jimin-github'
-        SONARQUBE_SERVER       = 'SonarScanner'
-        SONARQUBE_CREDENTIALS  = 'sonarqube-token'  // Jenkins에 Secret text credentials로 생성 필요
-        K8S_DIR = 'k8s'
-        KUBECTL_BIN = 'k3s kubectl'
-        GITHUB_REPO = 'devops-healthyreal/front'
+        // ✅ 환경 변수 정의
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // 젠킨스에 등록된 DockerHub ID/PW
+        DOCKER_IMAGE = "zzmnxn/front"
+        DEPLOY_USER = "ubuntu"
+        DEPLOY_SERVER = "13.124.109.82"       // EC2 서버 IP (k3s 마스터)
+        DEPLOY_PATH = "/home/ubuntu/k3s-deploy" // kubectl apply 실행 경로
+        K8S_DIR = "k8s"
     }
 
     stages {
         stage('Checkout') {
             steps {
+                echo " GitHub에서 소스코드 가져오기"
                 checkout scm
                 sh '''
                   echo "Branch: $(git rev-parse --abbrev-ref HEAD)"
@@ -39,220 +29,65 @@ pipeline {
             }
         }
 
-        stage('SonarQube (release)') {
-            when { 
-                anyOf {
-                    expression { env.BRANCH_NAME == 'release' || env.BRANCH_NAME == 'origin/release' }
-                    expression { env.GIT_BRANCH?.endsWith('/release') }
-                }
-            }
+        stage('Build Docker Image') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    script {
-                        withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
-                            withCredentials([
-                                string(credentialsId: "${SONARQUBE_CREDENTIALS}", variable: 'SONAR_TOKEN')
-                            ]) {
-                                def scannerOutput = sh(
-                                    script: """
-                                      docker run --rm \\
-                                        -v \$(pwd):/usr/src \\
-                                        -w /usr/src \\
-                                        -e SONAR_HOST_URL=${params.SONAR_HOST_URL} \\
-                                        -e SONAR_TOKEN=\${SONAR_TOKEN} \\
-                                        sonarsource/sonar-scanner-cli:latest 2>&1
-                                    """,
-                                    returnStdout: true
-                                )
-                                
-                                echo scannerOutput
-                                
-                                // sh 스크립트 내에서 task ID 추출 (Matcher 객체를 변수에 저장하지 않음)
-                                def taskId = sh(
-                                    script: """
-                                      echo '${scannerOutput}' | grep -oP 'task\\?id=\\K[a-f0-9-]+' | head -1 || echo ""
-                                    """,
-                                    returnStdout: true
-                                ).trim()
-                                
-                                if (taskId) {
-                                    echo "Found task ID: ${taskId}"
-                                    
-                                    // report-task.txt 파일 생성
-                                    sh """
-                                      mkdir -p .scannerwork
-                                      echo "projectKey=${params.SONAR_PROJECT_KEY}" > .scannerwork/report-task.txt
-                                      echo "serverUrl=${params.SONAR_HOST_URL}" >> .scannerwork/report-task.txt
-                                      echo "ceTaskId=${taskId}" >> .scannerwork/report-task.txt
-                                      echo "ceTaskUrl=${params.SONAR_HOST_URL}/api/ce/task?id=${taskId}" >> .scannerwork/report-task.txt
-                                      cp .scannerwork/report-task.txt report-task.txt
-                                    """
-                                } else {
-                                    echo "Warning: Could not extract task ID from scanner output"
-                                }
-                            }
-                        }
-                    }
-                }
+                echo " 도커 이미지 빌드 중..."
+                sh '''
+                docker build -t ${DOCKER_IMAGE}:latest .
+                '''
             }
         }
 
-        stage('SonarQube Quality Gate (release)') {
-            when { 
-                anyOf {
-                    expression { env.BRANCH_NAME == 'release' || env.BRANCH_NAME == 'origin/release' }
-                    expression { env.GIT_BRANCH?.endsWith('/release') }
-                }
-            }
+        stage('Login & Push Docker Image') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                echo " DockerHub 로그인 및 이미지 푸시"
+                sh '''
+                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                docker push ${DOCKER_IMAGE}:latest
+                '''
             }
         }
 
-        stage('Create PR to develop (release)') {
-            when { 
-                anyOf {
-                    expression { env.BRANCH_NAME == 'release' || env.BRANCH_NAME == 'origin/release' }
-                    expression { env.GIT_BRANCH?.endsWith('/release') }
-                }
-            }
+        stage('Sync YAML to Server') {
             steps {
+                echo "🗂️ k3s-front.yaml 최신 버전을 서버로 동기화 (덮어쓰기 또는 신규 생성)"
                 script {
-                    def sonarUrl = sh(
-                        script: '''
-                          echo "${SONAR_HOST_URL}/dashboard?id=${SONAR_PROJECT_KEY}" || echo ""
-                        ''',
-                        returnStdout: true
-                    ).trim()
-                    
-                    def commitMsg = sh(
-                        script: 'git log -1 --pretty=%B',
-                        returnStdout: true
-                    ).trim()
-                    
-                    def commitAuthor = sh(
-                        script: 'git log -1 --pretty=%an',
-                        returnStdout: true
-                    ).trim()
-                    
-                    def commitSha = sh(
-                        script: 'git rev-parse --short HEAD',
-                        returnStdout: true
-                    ).trim()
-                    
-                    def prBody = """
-## 📦 자동 생성된 배포 PR
-
-**Release 브랜치의 변경사항을 Develop으로 배포합니다.**
-
-### 📝 최근 커밋 정보
-- **Author**: ${commitAuthor}
-- **Message**: ${commitMsg}
-- **Commit**: ${commitSha}
-- **Branch**: release → develop
-
-### ✅ SonarQube 품질 검사
-- **Status**: ✅ Quality Gate 통과
-${sonarUrl ? "- **Report**: ${sonarUrl}" : ""}
-
-### ✅ 배포 전 체크리스트
-- [x] SonarQube Quality Gate 통과
-- [ ] 코드 리뷰 완료
-- [ ] 테스트 통과 확인
-- [ ] 배포 준비 완료
-
-### 🔄 배포 프로세스
-이 PR이 merge되면 Jenkins를 통해 자동으로 운영 서버(k3s)에 배포됩니다.
-
----
-*이 PR은 SonarQube Quality Gate 통과 후 자동으로 생성되었습니다.*
-"""
-                    
-                    withCredentials([string(credentialsId: "${GITHUB_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
+                    sshagent(credentials: ['admin']) {
+                        // 서버에 yaml 폴더가 없으면 만들고, yaml 파일 덮어쓰기
                         sh """
-                          if command -v gh >/dev/null 2>&1; then
-                            export GH_TOKEN="${GITHUB_TOKEN}"
-                            gh pr create \\
-                              --base develop \\
-                              --head release \\
-                              --title "🚀 [Auto PR] Deploy release to develop - ${commitSha}" \\
-                              --body "${prBody}" \\
-                              --label "auto-pr,deployment" || echo "PR may already exist"
-                          else
-                            curl -X POST \\
-                              -H "Authorization: token ${GITHUB_TOKEN}" \\
-                              -H "Accept: application/vnd.github.v3+json" \\
-                              https://api.github.com/repos/${GITHUB_REPO}/pulls \\
-                              -d '{
-                                "title": "🚀 [Auto PR] Deploy release to develop - ${commitSha}",
-                                "head": "release",
-                                "base": "develop",
-                                "body": ${groovy.json.JsonOutput.toJson(prBody)},
-                                "labels": ["auto-pr", "deployment"]
-                              }' || echo "PR creation failed or already exists"
-                          fi
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
+                            mkdir -p ${DEPLOY_PATH}
+                        '
+                        scp -o StrictHostKeyChecking=no ${K8S_DIR}/k3s-front.yaml ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/k3s-front.yaml
                         """
                     }
                 }
             }
         }
 
-        stage('Build & Push Image (develop)') {
-            when { branch 'develop' }
+        stage('Deploy to k3s Cluster') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                      echo "Building ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}:${IMAGE_TAG}"
-                      docker build -t ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}:${IMAGE_TAG} -f Dockerfile .
-                      echo "${DOCKERHUB_CREDENTIALS_PSW}" | docker login -u "${DOCKERHUB_CREDENTIALS_USR}" --password-stdin
-                      docker push ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}:${IMAGE_TAG}
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes (develop)') {
-            when { branch 'develop' }
-            steps {
-                withCredentials([string(credentialsId: "${KUBECONFIG_CREDENTIALS}", variable: 'KUBECONFIG_CONTENT'), credentials('dockerhub-credentials')]) {
-                    sh '''
-                      # Secret text의 내용을 임시 파일로 저장
-                      echo "${KUBECONFIG_CONTENT}" > /tmp/kubeconfig-${BUILD_NUMBER}
-                      chmod 600 /tmp/kubeconfig-${BUILD_NUMBER}
-                      export KUBECONFIG="/tmp/kubeconfig-${BUILD_NUMBER}"
-                      
-                      ${KUBECTL_BIN} config use-context ${K8S_CONTEXT}
-                      
-                      # 네임스페이스 생성 (없으면 생성)
-                      if ! ${KUBECTL_BIN} get ns ${K8S_NAMESPACE} >/dev/null 2>&1; then
-                        echo "Creating namespace: ${K8S_NAMESPACE}"
-                        ${KUBECTL_BIN} create ns ${K8S_NAMESPACE}
-                      else
-                        echo "Namespace ${K8S_NAMESPACE} already exists"
-                      fi
-
-                      # 1. Metrics Service 배포 (nginx-exporter를 외부에서 접근 가능하도록)
-                      ${KUBECTL_BIN} apply -f ${K8S_DIR}/service-metrics-nodeport.yaml
-
-                      # 2. Vue 앱 Deployment 배포 (이미지 태그를 교체한 후 적용)
-                      ${KUBECTL_BIN} -n ${K8S_NAMESPACE} apply -f ${K8S_DIR}/deployment.yaml
-                      ${KUBECTL_BIN} -n ${K8S_NAMESPACE} set image deployment/front front=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}:${IMAGE_TAG}
-                      ${KUBECTL_BIN} -n ${K8S_NAMESPACE} rollout status deployment/front --timeout=180s
-
-                      # 메트릭/헬스 간단 확인
-                      if [ -n "${K3S_NODE_IP}" ]; then
-                        echo "[Info] Metrics endpoint: http://${K3S_NODE_IP}:9000/metrics"
-                        echo "[Info] Test: curl http://${K3S_NODE_IP}:9000/metrics | head -n 5 || true"
-                      else
-                        echo "[Info] K3S_NODE_IP 파라미터를 설정하면 metrics endpoint 정보가 표시됩니다."
-                        echo "[Info] Metrics endpoint: http://<K3S_NODE_IP>:9000/metrics"
-                      fi
-                      
-                      # 임시 파일 정리 (선택사항)
-                      rm -f /tmp/kubeconfig-${BUILD_NUMBER}
-                    '''
+                echo " 원격 서버에 배포(kubectl apply -f)"
+                script {
+                    sshagent(credentials: ['admin_team']) {
+                        
+                        // kubectl set image <리소스종류>/<리소스이름> <deployment 내부에 정의한 컨테이너이름>=<새이미지> [옵션]
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
+                            echo "🔄 최신 Docker 이미지 Pull..."
+                            # k3s kubectl 사용 (권한 문제 해결)
+                            
+                            # 네임스페이스 생성 (없으면)
+                            sudo k3s kubectl create namespace healthyreal --dry-run=client -o yaml | sudo k3s kubectl apply -f -
+                            # 배포 실행
+                            sudo k3s kubectl apply -f ${DEPLOY_PATH}/k3s-front.yaml
+                            # 이미지 업데이트 (Deployment가 이미 존재하는 경우)
+                            sudo k3s kubectl set image deployment/front front=${DOCKER_IMAGE}:latest --record -n healthyreal || true
+                            
+                            echo "✅ 배포 완료"
+                        '
+                        """
+                    }
                 }
             }
         }
@@ -260,10 +95,10 @@ ${sonarUrl ? "- **Report**: ${sonarUrl}" : ""}
 
     post {
         success {
-            echo "OK: ${env.BRANCH_NAME} -> ${params.IMAGE_NAME}:${env.IMAGE_TAG}"
+            echo "Front 배포 성공!"
         }
         failure {
-            echo "Pipeline failed."
+            echo " 배포 실패. 로그를 확인하세요."
         }
     }
 }
