@@ -1,8 +1,6 @@
 <script setup>
-import axios from '@axios'
+import axios from 'axios'
 import { onMounted, ref } from 'vue'
-
-import.meta.env.VITE_APP_OPENAI_API_KEY
 
 
 let messages = ref([{ role: 'system', content: 'You are Helthy-Real\'s customer service chatbot.' }])
@@ -16,7 +14,7 @@ let ttsText = ref('')
 const API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY
 
 console.log("api-key", import.meta.env.VITE_SOME_KEY)
-console.log("api-key", process.env.VITE_APP_OPENAI_API_KEY)
+console.log("api-key", import.meta.env.VITE_APP_OPENAI_API_KEY)
 console.log("api-key", API_KEY )
 
 //stt

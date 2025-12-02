@@ -69,7 +69,7 @@ onMounted(async () => {
 
 const getData = async () => {
 
-  const response = await axios.post('http://127.0.0.1:4000/exer/getData.do', { id: connetId })
+  const response = await axios.post('/exer/getData.do', { id: connetId })
 
   data.value = response.data
   console.log("운동 값 가져와??", data.value)

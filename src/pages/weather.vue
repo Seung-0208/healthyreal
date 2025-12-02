@@ -1,5 +1,5 @@
 <script setup>
-import axios from '@axios'
+import axios from '@/plugins/axiosflask'
 import { onMounted, ref } from 'vue'
 
 // 로그인 스토어와 사용자 스토어의 상태를 가져옵니다.
@@ -54,7 +54,7 @@ const getuseraddress = () => {
         location: location.value,
       }
 
-      axios.post('http://127.0.0.1:5000/weatherInfo', data)
+      axios.post('/weatherInfo', data)
         .then(response => {
           const result = response.data
 

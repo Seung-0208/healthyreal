@@ -5,6 +5,7 @@ import {
   VerticalNavLink,
 } from '@layouts/components'
 import { config } from '@layouts/config'
+import { useRouter } from 'vue-router'
 import { canViewNavMenuGroup } from '@layouts/plugins/casl'
 import { injectionKeyIsVerticalNavHovered } from '@layouts/symbols'
 import {

@@ -3,9 +3,7 @@ import router from '@/router'
 import axios from 'axios'
 
 // 환경에 따라 baseURL 자동 설정
-const baseURL = import.meta.env.PROD 
-  ? '/api-flask'  // 프로덕션: 상대 경로 (Nginx가 /api/)
-  : 'http://localhost:5000'  // 개발: 로컬  서버
+const baseURL = import.meta.env.VITE_API_FLASK_BASE_URL
 
 const axiosIns = axios.create({
   baseURL: baseURL,

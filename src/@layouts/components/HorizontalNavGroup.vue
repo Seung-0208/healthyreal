@@ -7,6 +7,7 @@ import {
 import { config } from '@layouts/config'
 import { canViewNavMenuGroup } from '@layouts/plugins/casl'
 import { isNavGroupActive } from '@layouts/utils'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   item: {

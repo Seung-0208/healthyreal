@@ -13,6 +13,7 @@ import {
   requiredValidatorPw,
 } from '@validators'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
 const store = useStore()
 

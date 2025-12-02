@@ -3,7 +3,7 @@ import ShareProjectDialogTemp from '@/components/dialogs/ShareProjectDialogTemp.
 import AreaCrawlingresult from '@/components/dialogs/areaCrawling_result.vue'
 import Chat from '@/pages/apps/mateChat.vue'
 import VColmateRoomParticipants from '@/pages/apps/mateRoomParticipants.vue'
-import axios from '@axios'
+import axios from '@/plugins/axiosflask'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -161,7 +161,7 @@ const getdayFromDate = data => {
 // 크롤링 함수
 function startCrawling() {
   isLoading.value = true // 로딩 시작
-  axios.post('http://127.0.0.1:5000/areaCrawling', {
+  axios.post('/areaCrawling', {
     matearea: room.value.mateArea.split(' ')[0].trim(),
     matemonth: getMonthFromDate(room.value.mateDate),
     matedate: getdayFromDate(room.value.mateDate),

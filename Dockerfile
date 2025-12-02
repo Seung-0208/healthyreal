@@ -1,42 +1,25 @@
-# ============================================
-# Stage 1: Build Vue Application
-# ============================================
+# ============================
+# 빌드 단계
+# ============================
 FROM node:18-alpine AS build
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files and @iconify for build:icons
-COPY package*.json ./
-COPY src/@iconify ./src/@iconify
-
-# Install dependencies (postinstall will run build:icons)
-RUN npm install
-
-# Copy project files
 COPY . .
 
-# Build Vue application for production
-RUN npm run build
+RUN yarn install
+RUN yarn run build
 
-# ============================================
-# Stage 2: Production Nginx Server
-# ============================================
-FROM nginx:alpine
+# ============================
+# 배포 단계
+# ============================
+FROM nginx:stable-alpine
 
-# Copy built assets from build stage
+# 빌드 산출물 복사
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 커스텀 nginx 템플릿 복사 (envsubst 사용)
+COPY ./nginx.conf /etc/nginx/templates/default.conf.template
 
-# Expose port 7001 (internal container port)
-EXPOSE 7001
+EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:7001/ || exit 1
-
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
-

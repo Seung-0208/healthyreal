@@ -1,5 +1,5 @@
 <script setup>
-import axios from '@axios'
+import axios from '@/plugins/axiosflask'
 import { onUpdated, ref } from 'vue'
 
 const props = defineProps({
@@ -101,7 +101,7 @@ function startCrawling(matearea, matemonth, matedate){
   crawlingData.value=""
   isLoading.value = true
   try{        
-    axios.post('http://127.0.0.1:5000/areaCrawling', { matearea: matearea, matemonth: parseInt(matemonth), matedate: parseInt(matedate) })
+    axios.post('/areaCrawling', { matearea: matearea, matemonth: parseInt(matemonth), matedate: parseInt(matedate) })
       .then(response => {
         // 서버로부터의 응답 처리
         console.log(response.data)//JSON.parse()

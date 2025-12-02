@@ -1,6 +1,5 @@
 
 // store/modules/loginStore.js
-import axiosIns from '@/plugins/axios'
 import axiosflask from '@/plugins/axiosflask'
 import router from '@/router'
 import axios from '@axios'
@@ -295,7 +294,7 @@ const loginStore = {
     logout({ commit, dispatch }) {
       return new Promise(async (resolve, reject) => {
         try {
-          const res = await axiosIns.post('/logout', null, { withCredentials: true })
+          const res = await axios.post('/logout', null, { withCredentials: true })
 
 
           await dispatch('userStore/userlogout', null, { root: true }) // 'userStore'의 'logout' 액션 디스패치

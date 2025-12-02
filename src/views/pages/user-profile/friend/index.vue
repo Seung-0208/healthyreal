@@ -66,7 +66,7 @@ const switchController = value => {
 
 const fetchProjectData = () => {
   if (router.params.tab === 'friend') { //조회용
-    axios.get("http://127.0.0.1:4000/comm/friend", { params: { id: userId.value } }) //이미 친구인 목록
+    axios.get("/comm/friend", { params: { id: userId.value } }) //이미 친구인 목록
       .then(response => {
         connectionData.value = response.data
         if (Object.keys(connectionData.value).length == 0) isFriendExist.value = true
@@ -103,7 +103,7 @@ const blockFriend = (bool, id) => {
   if (bool) {
     console.log(id, '차단됨')
   }
-  axios.put("http://127.0.0.1:4000/comm/friend/block", JSON.stringify({ //차단용
+  axios.put("/comm/friend/block", JSON.stringify({ //차단용
     userId: userId.value,
     id: id,
   }), { headers: { "Content-Type": `application/json` } })
@@ -122,7 +122,7 @@ window.addEventListener('click', () => { //친구 끊기용
       console.log(userid, isConnected[userid].value)
       if (!isConnected[userid].value) {
         console.log('axios delete 안으로 들어옴', userid)
-        axios.delete("http://127.0.0.1:4000/comm/friend/delete", {
+        axios.delete("/comm/friend/delete", {
           data: {
             userId: userId.value,
             id: userid,

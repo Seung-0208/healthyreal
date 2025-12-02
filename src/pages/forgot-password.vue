@@ -9,6 +9,7 @@ import authV2MaskLight from '@images/pages/auth-v2-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { RouterLink, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const name = ref('')
 const birthday = ref('')

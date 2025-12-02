@@ -1,5 +1,5 @@
 <script setup>
-import axios from '@axios'
+import axios from 'axios'
 import { ref } from 'vue'
 
 const API_KEY = import.meta.env.VITE_APP_STABILITY_AI_API_KEY

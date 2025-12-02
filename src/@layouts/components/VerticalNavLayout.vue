@@ -1,6 +1,7 @@
 <script>
 import { useLayouts } from '@layouts'
 import { VerticalNav } from '@layouts/components'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   props: {

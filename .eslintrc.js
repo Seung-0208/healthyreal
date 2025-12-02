@@ -23,8 +23,8 @@ module.exports = {
   ],
   ignorePatterns: ['src/@iconify/*.js', 'node_modules', 'dist'],
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-console': import.meta.env.VITE_PROD === 'true' ? 'warn' : 'off',
+    'no-debugger': import.meta.env.VITE_PROD === 'true' ? 'warn' : 'off',
 
     // indentation (Already present in TypeScript)
     'comma-spacing': ['error', { before: false, after: true }],
@@ -204,14 +204,6 @@ module.exports = {
           message: '`useLayouts` composable is only allowed in @layouts & @core directory. Please use `useThemeConfig` composable instead.',
           files: {
             inspect: '^(?!.*(@core|@layouts)).*',
-          },
-        },
-        {
-          regex: 'import axios from \'axios\'',
-          replacement: 'import axios from \'@axios\'',
-          message: 'Use axios instances created in \'src/plugin/axios.js\' instead of unconfigured axios',
-          files: {
-            ignore: '^.*plugins/axios.js.*',
           },
         },
       ],

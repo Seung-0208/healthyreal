@@ -152,7 +152,7 @@ const startExercise = async () => {
 
 const getData = async () => {
   try {
-    const response = await axios.post('http://127.0.0.1:4000/exer/getData.do', { id: userId.value })
+    const response = await axios.post('/exer/getData.do', { id: userId.value })
     if (response.data) {
       videoRef1.value = response.data[0].evideoPath
       videoRef2.value = response.data[1].evideoPath

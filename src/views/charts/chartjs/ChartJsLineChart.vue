@@ -2,7 +2,7 @@
 import type { ChartJsCustomColors } from '@/views/charts/chartjs/types';
 import { getLineChartConfig } from '@core/libs/chartjs/chartjsConfig';
 import LineChart from '@core/libs/chartjs/components/LineChart';
-import axios from 'axios';
+import axios from '@axios';
 import { nextTick, onMounted, ref } from 'vue';
 import { useTheme } from 'vuetify';
 

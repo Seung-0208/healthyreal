@@ -2,7 +2,7 @@
 import axios from '@axios'
 import { useThemeConfig } from '@core/composable/useThemeConfig'
 import Shepherd from 'shepherd.js'
-
+import { useRouter } from 'vue-router'
 const { appContentLayoutNav } = useThemeConfig()
 
 defineOptions({ inheritAttrs: false })

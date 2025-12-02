@@ -21,7 +21,7 @@ const isSubscribed = {}
 
 const fetchProjectData = () => {
   if (router.params.tab === 'subscriber') {
-    axios.get('http://127.0.0.1:4000/comm/subscribe', { params: { id: connetId.value } }).then(response => {
+    axios.get('/comm/subscribe', { params: { id: connetId.value } }).then(response => {
       subscribeTo.value = response.data['subTo']
       subscribers.value = response.data['MySub']
       console.log(typeof subscribers.value)
@@ -62,7 +62,7 @@ window.addEventListener('click', ()=>{ //beforeunload
 
       if (!isSubscribed[userid].value){
         console.log('axios delete 안으로 들어옴', userid)
-        axios.delete("http://127.0.0.1:4000/comm/subscribe/delete", {
+        axios.delete("/comm/subscribe/delete", {
           data: {
             userId: connetId.value,
             subToId: userid,
@@ -93,7 +93,7 @@ const deleteController = id => {
 
 const deleteMySub = id => { //api 요청
   console.log(id, '삭제됨')
-  axios.delete("http://127.0.0.1:4000/comm/subscribe/deleteSubscriber", { data: {
+  axios.delete("/comm/subscribe/deleteSubscriber", { data: {
     subId: id,
     userId: connetId.value,
   } })

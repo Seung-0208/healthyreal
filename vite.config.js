@@ -16,12 +16,9 @@ import DefineOptions from 'unplugin-vue-define-options/vite'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
 
-  const env = loadEnv('', process.cwd(), '');
-  const isProd = mode === 'production';
+  const env = loadEnv(mode, process.cwd(), '');
 
-  const API_BASE_URL = isProd
-    ? '/api'  // 프로덕션: Nginx 프록시 경로
-    : "http://localhost:4000"  // 개발: 로컬 Spring 서버
+  const API_BASE_URL = env.VITE_API_BASE_URL
 
   return {
     plugins: [
@@ -88,7 +85,7 @@ export default defineConfig(({ mode }) => {
       }),
       DefineOptions(),
     ],
-    define: { 'process.env': {} },
+    define: { 'process.env': env },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

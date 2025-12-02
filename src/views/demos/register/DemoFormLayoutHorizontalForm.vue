@@ -37,51 +37,6 @@ const emits = defineEmits({
 })
 
 
-// Axios 인스턴스 생성
-const instance = axios.create({
-  baseURL: API_BASE_URL,
-})
-
-
-// 요청 인터셉터 설정
-instance.interceptors.request.use(
-  config => {
-    // config.headers.authorization = 'token'
-    config.headers['Access-Control-Allow-Origin'] = '*'  // CORS 설정(모든 리소스 허용)
-
-    return config
-  },
-  error => {
-    // 요청을 보내는 데 실패했을 때의 처리
-    return Promise.reject(error)
-  },
-)
-
-// 응답 인터셉터 설정
-instance.interceptors.response.use(
-  response => {
-    // 응답 코드가 200이면, 응답을 그대로 반환
-    if (response.status === 200) {
-      return response
-    }
-  },
-  error => {
-    // 오류 응답이 401이면, 사용자 정의 오류 메시지를 반환
-    if (error.response && error.response.status === 401) {
-
-      console.log("무슨에러냐 도대체", error.response.status)
-
-      return Promise.reject('인증번호를 다시 확인해주세요.')
-    }
-
-    console.log("무슨에러냐 도대체", error.response.status)
-
-    // 그 외의 오류는 그대로 반환
-    return Promise.reject(error)
-  },
-)
-
-
 const router = useRouter()
 
 const isSnackbarVisible = ref(false)
@@ -459,7 +414,7 @@ const verifyCertification = async () => {
 const resendVerificationCode = async () => {
   try {
     // 인증번호를 만료하고 새로운 인증번호를 발급합니다.
-    const response = await axios.post('/resendVerificationCode', {
+    const response = await instance.post('/resendVerificationCode', {
       phone: tel.value,
     })
 

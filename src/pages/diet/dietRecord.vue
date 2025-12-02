@@ -1,6 +1,6 @@
 <script setup>
 import NutrientAnalysis from '@/components/dialogs/NutrientAnalysis.vue'
-import axios from '@axios'
+import axios from '@/plugins/axiosflask'
 import { ref } from 'vue'
 import { useStore } from 'vuex'
 
@@ -69,7 +69,7 @@ const foodocr = async imageFile => {
 
       formdata.append('base64Encoded', base64Encoded)
       try {
-        const response = await axios.post('http://127.0.0.1:5000/foodOcr', formdata)
+        const response = await axios.post('/foodOcr', formdata)
         const data = response.data
 
         console.log('여기까지 들어옴', data)

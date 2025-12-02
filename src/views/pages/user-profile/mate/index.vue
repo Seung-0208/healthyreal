@@ -67,7 +67,7 @@ const isWarning = {}
 
 const fetchProjectData = () => { //유저 값 가져오기
   if (router.params.tab === 'mate') {
-    axios.get('http://127.0.0.1:4000/comm/mate', {
+    axios.get('/comm/mate', {
       params: {
         id: userId.value,
       },
@@ -111,7 +111,7 @@ const isWarningComplete = ref(false)
 const blockMate = (warningReason, id) => {
   console.log(warningReason.value, id) //axios로 처리
   isWarningComplete.value = true
-  axios.post("http://127.0.0.1:4000/comm/mate/reportwarning", JSON.stringify({
+  axios.post("/comm/mate/reportwarning", JSON.stringify({
     userId: userId.value,
     id: id,
     warningReason: warningReason.value,
@@ -128,7 +128,7 @@ watch(rating, () => { //호감도 관련 기능
   if (beforeRating != {}) {
     for (const key in rating) {
       if (beforeRating[key] != rating[key]) {
-        axios.put('http://127.0.0.1:4000/comm/mate/changefavorable', JSON.stringify({
+        axios.put('/comm/mate/changefavorable', JSON.stringify({
           mate_id: key,
           favorable_rating: rating[key],
         }), { headers: { "Content-Type": `application/json` } })
@@ -150,7 +150,7 @@ window.addEventListener('click', () => { //beforeunload
 
       if (!isConnected[userid].value) {
         console.log('axios delete 안으로 들어옴', userid)
-        axios.delete("http://127.0.0.1:4000/comm/mate/delete", { //메이트 취소하기
+        axios.delete("/comm/mate/delete", { //메이트 취소하기
           data: {
             userId: userId.value,
             id: userid,

@@ -1,48 +1,85 @@
-version: '3.8'
-
 # ============================================
-# Vue Frontend - Docker Compose
-# 로컬 개발 및 테스트용 설정
+# Vue Frontend - Production Docker Compose
 # ============================================
 
 services:
   # ==========================================
-  # Vue.js Frontend Service
+  # Vue.js Frontend Service (Dev Build + NGINX)
   # ==========================================
-  vue-frontend:
-    container_name: healthyreal-vue-container
+  vue-dev:
+    container_name: healthyreal-vue-dev
+    image: zzmnxn/healthyreal-vue:latest
     build:
       context: .
       dockerfile: Dockerfile
-    image: healthyreal-vue:latest
     ports:
-      - "7001:7001"
+      - "7001:80"  # NGINX serving Vue static files
+    volumes:
+      - vue_nginx_logs:/var/log/nginx
+    environment:
+      - SPRING_API_BASE_URL=${SPRING_API_BASE_URL:-http://13.124.32.119:7002}
+      - FLASK_API_BASE_URL=${FLASK_API_BASE_URL:-http://3.34.155.126:5000}
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
     networks:
       - healthyreal-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://15.164.146.96:7001/"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost/healthz || exit 1"]
       interval: 30s
       timeout: 3s
       start_period: 40s
       retries: 3
     labels:
       - "service=vue-frontend"
-      - "environment=development"
+
+  # ==========================================
+  # NGINX Prometheus Exporter
+  # ==========================================
+  vue-metrics:
+    container_name: healthyreal-vue-metrics
+    image: nginx/nginx-prometheus-exporter:0.11.0
+    command:
+      - "--nginx.scrape-uri=http://vue-dev/status"
+      - "--web.listen-address=:9113"
+    depends_on:
+      - vue-dev
+    ports:
+      - "9113:9113"  # /metrics exposed for Prometheus
+    networks:
+      - healthyreal-network
+    restart: unless-stopped
+
+  # ==========================================
+  # Promtail (Logs -> Loki)
+  # ==========================================
+  vue-promtail:
+    container_name: healthyreal-vue-promtail
+    image: grafana/promtail:2.9.1
+    command: ["-config.file=/etc/promtail/promtail.yml"]
+    depends_on:
+      - vue-dev
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/promtail.yml:ro
+      - vue_nginx_logs:/var/log/nginx:ro
+      - promtail_positions:/tmp
+    environment:
+      - LOKI_ENDPOINT=${LOKI_ENDPOINT:-http://localhost:3100/loki/api/v1/push}
+      - PROMTAIL_INSTANCE=vue-dev
+    networks:
+      - healthyreal-network
+    restart: unless-stopped
 
 # ==========================================
 # Networks
 # ==========================================
 networks:
   healthyreal-network:
-    driver: bridge
-    name: healthyreal-network
+    external: true  # 필요 시: 서버에 사전에 docker network create healthyreal-network 실행
 
 # ==========================================
-# 사용법
+# Volumes
 # ==========================================
-# 빌드 및 실행: docker-compose up -d
-# 로그 확인: docker-compose logs -f
-# 중지: docker-compose down
-# 재빌드: docker-compose up -d --build
+volumes:
+  vue_nginx_logs:
+  promtail_positions:
 

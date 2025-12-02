@@ -1,5 +1,6 @@
 <script setup>
 import axiosflask from '@/plugins/axiosflask'
+import { useRouter } from 'vue-router'
 
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
