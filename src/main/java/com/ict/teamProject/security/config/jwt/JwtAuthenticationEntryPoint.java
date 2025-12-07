@@ -19,6 +19,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
+        
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         System.out.println("너는 정상이잖아");
         String jsonData = "{\"message\": \"Please login first\", \"redirectUrl\": \"http://localhost:3333/login\"}";

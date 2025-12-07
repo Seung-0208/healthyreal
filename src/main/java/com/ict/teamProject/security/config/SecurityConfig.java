@@ -104,7 +104,7 @@ public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFil
 				"/forgot-password-phone","/forgot-password-email").permitAll()
 				.requestMatchers("/admin/**", "/access-control").hasAuthority("ROLE_ADMIN")
 				
-				.requestMatchers("/main","/exer/getData.do").permitAll()
+				.requestMatchers("/main","/exer/getData.do","/exer/get-today-data").permitAll()
 				.anyRequest().permitAll() 
 				)
 				

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ict.teamProject.exercise_record.ERDto;
 import com.ict.teamProject.exercise_record.ERService;
+import com.ict.teamProject.exercise_record.ExecRecordDto;
 
 
 
@@ -20,6 +21,11 @@ public class ERServiceImpl implements ERService<ERDto> {
 	@Override
 	public List getData(String id) {
 		return mapper.getData(id);
+	}
+	
+	@Override
+	public List<ExecRecordDto> getTodayData(String id) {
+		return mapper.getTodayData(id);
 	}
 	
 

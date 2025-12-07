@@ -5,6 +5,8 @@ import java.util.List;
 public interface ERService<T> {
 
 	List<ERDto> getData(String id);
+	
+	List<ExecRecordDto> getTodayData(String id);
 
 
 

@@ -6,13 +6,16 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.ict.teamProject.exercise_record.ERDto;
 import com.ict.teamProject.exercise_record.ERService;
+import com.ict.teamProject.exercise_record.ExecRecordDto;
 
 
 
@@ -43,5 +46,14 @@ public class ERController {
 		}
 		System.out.println("운동 데이터"+re);
 		return re;
+	}
+	
+	@GetMapping("/get-today-data")
+	@ResponseBody
+	public List<ExecRecordDto> getTodayData(@RequestParam String id) {
+		System.out.println("오늘 운동 기록 조회 - 사용자 ID: " + id);
+		List<ExecRecordDto> result = service.getTodayData(id);
+		System.out.println("조회된 운동 기록 수: " + result.size());
+		return result;
 	}
 }

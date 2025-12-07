@@ -12,4 +12,11 @@
 	        ORDER BY r.ER_DATE DESC
 	    ) as re limit 3
 	</select>
+	
+	<select id="getTodayData" parameterType="String" resultType="ExecRecordDto">
+	    SELECT id, e_name as eName, er_date as erDate 
+	    FROM exercise_record
+	    WHERE ID = #{id} 
+	    AND DATE(er_date) = DATE(NOW())
+	</select>
 </mapper>
