@@ -6,8 +6,8 @@ pipeline {
         DOCKERFILE_PATH = 'Dockerfile'
         PROJECT_PATH = "back"
         REMOTE_USER = 'ubuntu'
-        REMOTE_HOST = '13.124.109.82'
-        REMOTE_PATH = '/home/ubuntu/devops-midterm'
+        REMOTE_HOST = '13.124.32.119'
+        REMOTE_PATH = '/home/ubuntu/develop'
     }
 
     stages {
@@ -17,6 +17,7 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} << EOF
                             set -e
+                            mkdir -p ${REMOTE_PATH}/${PROJECT_PATH}
                             cd ${REMOTE_PATH}/${PROJECT_PATH}
 
                             echo "Updating code..."
@@ -34,22 +35,6 @@ pipeline {
                                 -t ${DOCKER_IMAGE_NAME}:${BUILD_NUMBER} \
                                 -f ${DOCKERFILE_PATH} \
                                 .
-EOF
-                    """
-                }
-            }
-        }
-
-        stage('Docker Compose Up on Remote') {
-            steps {
-                sshagent(credentials: ['admin']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} << EOF
-                            set -e
-                            cd ${REMOTE_PATH}
-
-                            echo "Starting services with Docker Compose..."
-                            docker-compose up -d
 EOF
                     """
                 }
