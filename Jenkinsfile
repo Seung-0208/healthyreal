@@ -78,6 +78,7 @@ pipeline {
                             kubectl delete statefulset mysql --cascade=orphan
                         fi
 
+                        sudo kubectl apply -f local-storage.yaml
                         sudo kubectl apply -f mysql-pv.yaml
                         sudo kubectl apply -f mysql.yaml
                     '
