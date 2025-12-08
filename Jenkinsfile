@@ -71,6 +71,13 @@ pipeline {
                     sh """
                     ssh ${REMOTE_USER}@${REMOTE_HOST} '
                         cd ${REMOTE_PATH}
+
+                        #StatefulSet 재생성
+                        if kubectl get statefulset mysql >/dev/null 2>&1; then
+                            echo "StatefulSet mysql already exists — deleting safely..."
+                            kubectl delete statefulset mysql --cascade=orphan
+                        fi
+
                         sudo kubectl apply -f mysql-pv.yaml
                         sudo kubectl apply -f mysql-pvc.yaml
                         sudo kubectl apply -f mysql.yaml
