@@ -79,7 +79,6 @@ pipeline {
                         fi
 
                         sudo kubectl apply -f mysql-pv.yaml
-                        sudo kubectl apply -f mysql-pvc.yaml
                         sudo kubectl apply -f mysql.yaml
                     '
                     """
