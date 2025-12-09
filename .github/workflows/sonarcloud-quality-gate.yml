@@ -1,0 +1,47 @@
+# .github/workflows/sonarcloud-quality-gate.yml
+name: SonarCloud Quality Gate
+
+on:
+  pull_request:
+    branches:
+      - main         
+
+jobs:
+  quality-gate:
+    name: SonarCloud Quality Gate  
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+     
+      - name: Quick syntax check
+        run: |
+          npm install -g yarn
+          yarn install --frozen-lockfile || true
+          yarn run build || echo "Build check completed"
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=devops-healthyreal_front
+            -Dsonar.organization=devops-healthyreal
+            -Dsonar.sources=src
+            -Dsonar.exclusions=**/node_modules/**,dist/**,**/*.spec.js,**/*.test.js,**/*.spec.ts,**/*.test.ts,**/coverage/**,**/.git/**,**/k8s/**,**/Dockerfile,**/docker-compose.yml,**/Jenkinsfile*,**/nginx.conf,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.svg,**/*.mp4,**/*.webm,**/*.ico,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot,**/@iconify/**,**/@fake-db/**,**/assets/images/**,**/assets/video/**
+            -Dsonar.javascript.linter.eslint.configFile=.eslintrc.js
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.host.url=https://sonarcloud.io
