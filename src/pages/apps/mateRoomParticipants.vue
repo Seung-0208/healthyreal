@@ -3,7 +3,7 @@ import axios from '@axios'
 import { defineProps, onUpdated } from 'vue'
 import { useStore } from 'vuex'
 
-const props = defineProps({
+const props = defineProps({ //test
   isDialogVisible: {
     type: Boolean,
     required: true,
