@@ -51,7 +51,7 @@ public class ERController {
 		return re;
 	}
 	
-	@GetMapping("/get-today-data")
+	@GetMapping("/get-today-data") //test
 	@ResponseBody
 	public List<ExecRecordDto> getTodayData(@RequestParam String id) {
 		System.out.println("오늘 운동 기록 조회 - 사용자 ID: " + id);
