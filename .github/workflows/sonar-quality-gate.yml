@@ -1,0 +1,48 @@
+# .github/workflows/sonarcloud-quality-gate.yml
+name: SonarCloud Quality Gate
+
+on:
+  pull_request:
+    branches:
+      - main   # main 으로 가는 PR 에서만 품질 게이트
+
+jobs:
+  quality-gate:
+    name: SonarCloud Quality Gate   # 브랜치 보호에서 required check 로 걸 이름
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # SonarCloud가 변경 라인 계산 잘 하도록 full history 권장
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'        # 프로젝트 JDK 버전에 맞게 수정
+
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build & SonarCloud analysis (Spring Boot)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # SonarCloud 토큰
+        run: |
+          ./mvnw -B clean verify -DskipTests=true
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+            -Dsonar.projectKey=healthyreal_back
+            -Dsonar.organization=devops-healthyreal
+            -Dsonar.host.url=https://sonarcloud.io 
+            -Dsonar.sources=src/main
+            -Dsonar.exclusions=**/target/**,**/*.class,**/application.properties,**/.env,**/.env.*,**/*.env,**/*key*,**/*secret*,**/*credential*,**/*.pem,**/*.key,**/*.cert,**/*.crt,**/*.p12,**/*.pfx,**/config.properties,**/*credentials*.json,**/src/test/**
