@@ -39,9 +39,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # SonarCloud 토큰
         run: |
-            ./mvnw clean verify -DskipTests=true sonar:sonar
-            -Dsonar.projectKey=healthyreal_back
-            -Dsonar.organization=devops-healthyreal
-            -Dsonar.host.url=https://sonarcloud.io 
-            -Dsonar.sources=src/main
+            ./mvnw clean verify -DskipTests=true sonar:sonar \
+            -Dsonar.projectKey=healthyreal_back \
+            -Dsonar.organization=devops-healthyreal \
+            -Dsonar.host.url=https://sonarcloud.io  \
+            -Dsonar.sources=src/main \
             -Dsonar.exclusions=**/target/**,**/*.class,**/application.properties,**/.env,**/.env.*,**/*.env,**/*key*,**/*secret*,**/*credential*,**/*.pem,**/*.key,**/*.cert,**/*.crt,**/*.p12,**/*.pfx,**/config.properties,**/*credentials*.json,**/src/test/**
