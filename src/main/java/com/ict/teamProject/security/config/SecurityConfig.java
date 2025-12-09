@@ -100,11 +100,12 @@ public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFil
 				);
 		http.authorizeHttpRequests( (requests)->requests
 				
-				.requestMatchers("/forgot-id","/forgot-password","/login-password",
-				"/forgot-password-phone","/forgot-password-email").permitAll()
-				.requestMatchers("/admin/**", "/access-control").hasAuthority("ROLE_ADMIN")
+//				.requestMatchers("/forgot-id","/forgot-password","/login-password",
+//				"/forgot-password-phone","/forgot-password-email").permitAll()
+				.requestMatchers("/**").permitAll()
+				.requestMatchers("/api/admin/**", "/api/access-control").hasAuthority("ROLE_ADMIN")
 				
-				.requestMatchers("/main","/exer/getData.do","/exer/get-today-data").permitAll()
+//				.requestMatchers("/main","/exer/getData.do","/exer/get-today-data").permitAll()
 				.anyRequest().permitAll() 
 				)
 				
@@ -119,7 +120,7 @@ public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFil
 					
 					.usernameParameter("id")
 					.passwordParameter("pwd")
-					.loginProcessingUrl("/login")
+					.loginProcessingUrl("/api/login")
 			)
 
 			.oauth2Login( (oauth2)-> 
