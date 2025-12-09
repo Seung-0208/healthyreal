@@ -1,0 +1,71 @@
+# ------------------------------------------
+# 1️⃣ Deployment
+# ------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-app #Deployment 리소스의 이름 (kubectl 관리용)
+  labels:
+    app: spring-app #다른 리소스(Service 등)가 이 리소스를 식별 시 사용/
+spec:
+  replicas: 1 # Pod 개수 지정
+  selector:
+    matchLabels:
+      app: spring-app # 이 라벨을 가진 Pod를 관리 대상으로 인식
+  template:
+    metadata:
+      labels:
+        app: spring-app # Pod에 붙는 라벨 (Service가 이걸 보고 연결하기 때문에 Service selector와 일치해야 함)
+    spec: # Pod를 정의하는 부분
+      containers:
+        - name: healthyreal-spring-container
+          image: seung0208/healthyreal-spring:latest   # 젠킨스에서 pull 받은, 실행할 docker 이미지
+          imagePullPolicy: Always # 항상 최신 이미지를 pull
+          ports:
+            - containerPort: 7002              # 컨테이너 내부 포트
+          envFrom:
+            - secretRef:
+                name: spring-env-secret         # ✅ .env 파일로 만든 Secret (선택사항)
+      restartPolicy: Always
+
+# ------------------------------------------
+# 2️⃣ Service
+# ------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-service
+  labels:
+    app: spring-service
+spec:
+  selector:
+    app: spring-app # 이 라벨을 가진 Pod로 트래픽을 전달 (Deployment의 라벨과 일치해야 함)
+  type: ClusterIP # 네트워크 포트 설정
+  ports:
+    - port: 7002           # 클러스터 내부에서 접근할 포트 (Service가 외부에 노출하는 포트) -> 다른 Pod가 http://flask-service:5000 으로 접근 시 내부적으로 service가 flask-app 라벨이 붙은 Pod로 트래픽 전달
+      targetPort: 7002     # 포드 내부 컨테이너의 포트
+      protocol: TCP
+
+# ------------------------------------------
+# 3️⃣ Ingress (외부 트래픽 유입)
+# ------------------------------------------
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spring-ingress
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false" # https 강제 리다이렉트 비활성화
+spec:
+  rules: # 라우팅 규칙 정의
+    - host: 13.124.109.82.nip.io     # 외부에서 접근할 도메인 또는 nip.io 주소
+      http:
+        paths:
+          - path: /api # 라우팅 경로
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-service # 연결할 service 이름
+                port:
+                  number: 7002 # service의 노출 포트 번호
