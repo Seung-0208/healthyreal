@@ -59,7 +59,8 @@ metadata:
 spec:
   selector:
     app: mysql
+  type: ClusterIP
   ports:
     - port: 3306
       targetPort: 3306
-  clusterIP: None  # ✅ StatefulSet은 headless service 권장
+      protocol: TCP
