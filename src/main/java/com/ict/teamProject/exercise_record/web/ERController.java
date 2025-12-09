@@ -3,7 +3,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.ict.teamProject.exercise_record.impl.ERServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,13 +25,13 @@ import com.ict.teamProject.exercise_record.ExecRecordDto;
 
 
 @Controller
-@RequestMapping("/exer")
+@RequestMapping(value = "/exer", produces = "application/json; charset = utf-8")
 @RestController
+@RequiredArgsConstructor
 public class ERController {
 	
 	//서비스 주입
-	@Autowired
-	private ERService<ERDto> service;
+	private final ERServiceImpl service;
 	
 	@PostMapping("/getData.do")
 	@ResponseBody
@@ -55,5 +58,11 @@ public class ERController {
 		List<ExecRecordDto> result = service.getTodayData(id);
 		System.out.println("조회된 운동 기록 수: " + result.size());
 		return result;
+	}
+
+	@PostMapping("/create-exec-data")
+	@ResponseBody
+	public ResponseEntity<String> createExecRecord(@RequestBody ExecRecordDto dto) {
+		return service.createExecRecord(dto);
 	}
 }

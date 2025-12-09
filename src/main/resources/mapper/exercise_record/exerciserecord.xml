@@ -19,4 +19,16 @@
 	    WHERE ID = #{id} 
 	    AND DATE(er_date) = DATE(NOW())
 	</select>
+
+	<insert id="createRecord" parameterType="ExecRecordDto">
+		INSERT INTO exercise_record (id, er_date, e_name)
+		values(
+			#{id},
+			<choose>
+				<when test="erDate != null">#{erDate}</when>
+				<otherwise>DATE(NOW())</otherwise>
+			</choose>,
+			#{eName}
+		)
+	</insert>
 </mapper>

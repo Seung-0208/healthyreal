@@ -15,5 +15,5 @@ public interface ERMapper {
 	
 	List<ExecRecordDto> getTodayData(String id);
 
-
+	void createRecord(ExecRecordDto dto);
 }
