@@ -1,0 +1,28 @@
+name: Auto PR from develop to main
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create_pull_request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: develop
+          base: main
+          title: "Auto PR: develop → main"
+          body: |
+            🚀 Jenkins 빌드 완료 후 자동으로 생성된 PR입니다.
+            변경 사항을 검토 후 merge 해주세요!
