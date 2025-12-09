@@ -2,41 +2,75 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_NAME = 'project-back'
-        DOCKERFILE_PATH = 'Dockerfile'
-        PROJECT_PATH = "back"
-        REMOTE_USER = 'ubuntu'
-        REMOTE_HOST = '13.124.32.119'
-        REMOTE_PATH = '/home/ubuntu/develop'
+        // ✅ 환경 변수 정의
+        DOCKERHUB_CREDENTIALS = credentials('seung-dockerhub-credentials')  // 젠킨스에 등록된 DockerHub ID/PW
+        DOCKER_IMAGE = "seung0208/healthyreal-spring"
+        DEPLOY_USER = "ubuntu"
+        DEPLOY_SERVER = "13.124.109.82"       // EC2 서버 IP (k3s 마스터)
+        DEPLOY_PATH = "/home/ubuntu/k3s-deploy" // kubectl apply 실행 경로
+        YAML_FILE = "k3s-app.yaml"             // 깃허브에 있는 yaml 파일 이름
     }
 
     stages {
-        stage('Checkout & Build on Remote') {
+        stage('Checkout') {
             steps {
-                sshagent(credentials: ['admin']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} << EOF
-                            set -e
-                            mkdir -p ${REMOTE_PATH}/${PROJECT_PATH}
-                            cd ${REMOTE_PATH}/${PROJECT_PATH}
+                echo "📦 GitHub에서 소스코드 가져오기"
+                checkout scm
+            }
+        }
 
-                            echo "Updating code..."
-                            git fetch origin
-                            git checkout main
-                            git pull origin main
+        stage('Build Docker Image') {
+            steps {
+                echo "🐳 도커 이미지 빌드 중..."
+                sh '''
+                docker build -t ${DOCKER_IMAGE}:latest .
+                '''
+            }
+        }
 
-                            echo "Current commit: \$(git rev-parse --short HEAD)"
-                            echo "Branch: \$(git rev-parse --abbrev-ref HEAD)"
-                            echo "Commit message: \$(git log -1 --pretty=%B)"
+        stage('Login & Push Docker Image') {
+            steps {
+                echo "🚀 DockerHub 로그인 및 이미지 푸시"
+                sh '''
+                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u seung0208 --password-stdin
+                docker push ${DOCKER_IMAGE}:latest
+                '''
+            }
+        }
 
-                            echo "Building Docker image..."
-                            docker build \
-                                -t ${DOCKER_IMAGE_NAME}:latest \
-                                -t ${DOCKER_IMAGE_NAME}:${BUILD_NUMBER} \
-                                -f ${DOCKERFILE_PATH} \
-                                .
-EOF
-                    """
+        stage('Sync YAML to Server') {
+            steps {
+                echo "🗂️ k3s-app.yaml 최신 버전을 서버로 동기화 (덮어쓰기 또는 신규 생성)"
+                script {
+                    sshagent(credentials: ['admin']) {
+                        // 서버에 yaml 폴더가 없으면 만들고, yaml 파일 덮어쓰기
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
+                            mkdir -p ${DEPLOY_PATH}
+                        '
+                        scp -o StrictHostKeyChecking=no ${YAML_FILE} ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/${YAML_FILE}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to k3s Cluster') {
+            steps {
+                echo "⚙️ 원격 서버에 배포(kubectl apply -f)"
+                script {
+                    sshagent(credentials: ['admin']) {
+                        // SSH 플러그인 사용 or 직접 SSH 실행
+                        // kubectl set image <리소스종류>/<리소스이름> <deployment 내부에 정의한 컨테이너이름>=<새이미지> [옵션]
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
+                            echo "🔄 최신 Docker 이미지 Pull..."
+                            kubectl set image deployment/spring-app healthyreal-spring-container=${DOCKER_IMAGE}:latest --record || \
+                            kubectl apply -f ${DEPLOY_PATH}/k3s-app.yaml
+                            echo "✅ 배포 완료"
+                        '
+                        """
+                    }
                 }
             }
         }
@@ -44,10 +78,10 @@ EOF
 
     post {
         success {
-            echo "Deployment completed successfully for build #${BUILD_NUMBER}"
+            echo "🎉 배포 성공!"
         }
         failure {
-            echo "Pipeline failed. Check logs."
+            echo "❌ 배포 실패. 로그를 확인하세요."
         }
     }
 }
