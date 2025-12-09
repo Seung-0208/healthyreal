@@ -18,7 +18,7 @@ import com.ict.teamProject.exercise_record.ExecRecordDto;
 class ERMapperTest {
 
     @Autowired
-    private ERMapper erMapper; //testtestest
+    private ERMapper erMapper; //testtestesttest
 
     @Test
     @DisplayName("오늘 운동 기록 조회 - 매퍼 메서드 존재 확인")
