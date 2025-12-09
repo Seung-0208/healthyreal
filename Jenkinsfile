@@ -67,6 +67,8 @@ pipeline {
                             echo "🔄 최신 Docker 이미지 Pull..."
                             kubectl set image deployment/spring-app healthyreal-spring-container=${DOCKER_IMAGE}:latest --record || \
                             kubectl apply -f ${DEPLOY_PATH}/k3s-app.yaml
+                            kubectl rollout restart deployment spring-app &&
+                            kubectl rollout status deployment spring-app
                             echo "✅ 배포 완료"
                         '
                         """
