@@ -69,7 +69,7 @@ const foodocr = async imageFile => {
 
       formdata.append('base64Encoded', base64Encoded)
       try {
-        const response = await axios.post('/foodOcr', formdata)
+        const response = await axios.post('/vision/food-ocr', formdata)
         const data = response.data
 
         console.log('여기까지 들어옴', data)

@@ -62,7 +62,7 @@ const isConfirmDialogVisible = ref(false)
 const getData = async (obj, connetId) => {
   console.log(connetId, "가할 운동은???", obj)
 
-  const response = await axiosflask.post('/recommendExercise', {
+  const response = await axiosflask.post('/recommend/recommendExercise', {
     message: obj,
     id: connetId,
   })
