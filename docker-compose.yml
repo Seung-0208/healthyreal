@@ -8,7 +8,7 @@ services:
   # ==========================================
   vue-dev:
     container_name: healthyreal-vue-dev
-    image: zzmnxn/healthyreal-vue:latest
+    image: seung0208/healthyreal-vue:latest
     build:
       context: .
       dockerfile: Dockerfile
