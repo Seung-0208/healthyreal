@@ -29,7 +29,7 @@ const route = useRoute()
 const isDialogVisible = ref(false)
 const isPDialogVisible = ref(!isDialogVisible.value)
 
-const dietinfo = ref([])
+const dietinfo = ref([""])
 
 let lastFoodRecommendationTime = null
 
