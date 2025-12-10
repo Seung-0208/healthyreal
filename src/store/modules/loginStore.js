@@ -48,7 +48,7 @@ const foodRecommend = async id => {
     .then(response => {
       console.log('응답받은 행:', response.data)
       if (response.data === 0) {
-        axiosflask.get("/food_recommend", { params: { id: id } })
+        axiosflask.get("/recommend/recommendFood", { params: { id: id } })
       }
     })
 }

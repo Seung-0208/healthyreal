@@ -64,7 +64,7 @@ const upload = async () => {
     isDialogVisible.value = false
 
     try {
-      const response = await axiosflask.post('/ocr', formData, {
+      const response = await axiosflask.post('/vision/in-ocr', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

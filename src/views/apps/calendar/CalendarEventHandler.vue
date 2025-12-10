@@ -259,7 +259,7 @@ const getEatingRecord = async () => {
             .then(response => {
               console.log('응답받은 행:', response)
               if (response.data === 0) {
-                axiosflask.get("/food_recommend", { params: { 'id': connetId } })
+                axiosflask.get("/recommend/recommendFood", { params: { 'id': connetId } })
                   .then(response => {
 
                     dietinfo.value = [null, null, null]
