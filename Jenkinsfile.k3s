@@ -71,14 +71,9 @@ pipeline {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
                             echo "🔄 최신 Docker 이미지 Pull..."
-                            # k3s kubectl 사용 (권한 문제 해결)
-                            
-                            # 네임스페이스 생성 (없으면)
-                            # sudo k3s kubectl create namespace healthyreal --dry-run=client -o yaml | sudo k3s kubectl apply -f -
-                            # 배포 실행
-                            sudo k3s kubectl apply -f ${DEPLOY_PATH}/k3s-front.yaml
-                            # 이미지 업데이트 (Deployment가 이미 존재하는 경우)
-                            sudo k3s kubectl set image deployment/front front=${DOCKER_IMAGE}:latest --record -n healthyreal || true
+                            kubectl apply -f ${DEPLOY_PATH}/k3s-front.yaml
+                            kubectl rollout restart deployment recommend &&
+                            kubectl rollout status deployment recommend
                             
                             echo "✅ 배포 완료"
                         '
