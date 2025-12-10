@@ -1,15 +1,11 @@
 pipeline {
     agent any
 
-    options {
-        disableConcurrentBuilds()
-        timestamps()
-    }
 
     environment {
         // ✅ 환경 변수 정의
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // 젠킨스에 등록된 DockerHub ID/PW
-        DOCKER_IMAGE = "zzmnxn/front"
+        DOCKERHUB_CREDENTIALS = credentials('seung-dockerhub-credentials')  // 젠킨스에 등록된 DockerHub ID/PW
+        DOCKER_IMAGE = "seung0208/front"
         DEPLOY_USER = "ubuntu"
         DEPLOY_SERVER = "13.124.109.82"       // EC2 서버 IP (k3s 마스터)
         DEPLOY_PATH = "/home/ubuntu/k3s-deploy" // kubectl apply 실행 경로
@@ -42,7 +38,7 @@ pipeline {
             steps {
                 echo " DockerHub 로그인 및 이미지 푸시"
                 sh '''
-                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u seung0208 --password-stdin
                 docker push ${DOCKER_IMAGE}:latest
                 '''
             }
