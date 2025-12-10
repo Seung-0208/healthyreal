@@ -8,8 +8,8 @@ metadata:
     app: front
 data:
   # Kubernetes 내부 서비스 이름 사용 (같은 네임스페이스)
-  VITE_API_BASE_URL: "http://spring-service:7002"
-  VITE_API_FLASK_BASE_URL: "http://13.124.109.82.nip.io:8100"  
+  VITE_API_BASE_URL: "http://13.124.109.82.nip.io/api"
+  VITE_API_FLASK_BASE_URL: "http://13.124.109.82.nip.io/ai"  
 ---
 apiVersion: v1
 kind: Service
