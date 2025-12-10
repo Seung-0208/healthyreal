@@ -270,7 +270,7 @@ const toolbarOptions = {
   },
 }
 
-//사용자가 입력한 값 가져오기
+//사용자가 입력한 값 가져오기 test
 window.addEventListener('click', () => {
   var diaryTag = document.querySelector('.ql-editor')
   if (diaryTag != null) {
