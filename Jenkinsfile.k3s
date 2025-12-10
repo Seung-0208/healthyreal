@@ -65,7 +65,7 @@ pipeline {
             steps {
                 echo " 원격 서버에 배포(kubectl apply -f)"
                 script {
-                    sshagent(credentials: ['admin_team']) {
+                    sshagent(credentials: ['admin']) {
                         
                         // kubectl set image <리소스종류>/<리소스이름> <deployment 내부에 정의한 컨테이너이름>=<새이미지> [옵션]
                         sh """
