@@ -270,7 +270,7 @@ const toolbarOptions = {
   },
 }
 
-//사용자가 입력한 값 가져오기
+//사용자가 입력한 값 가져오기 test
 window.addEventListener('click', () => {
   var diaryTag = document.querySelector('.ql-editor')
   if (diaryTag != null) {
@@ -282,7 +282,7 @@ window.addEventListener('click', () => {
 //감정 분석 모달창 띄우기 용
 const openModal = () => {
   isEmotionDetectDialogVisible.value = true
-  axiosflask.get("/diary", {
+  axiosflask.get("/diary", {//
     params: {
       diary: diaryText.value,
     }
