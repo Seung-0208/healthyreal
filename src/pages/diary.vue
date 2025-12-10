@@ -282,7 +282,7 @@ window.addEventListener('click', () => {
 //감정 분석 모달창 띄우기 용
 const openModal = () => {
   isEmotionDetectDialogVisible.value = true
-  axiosflask.get("/diary", {
+  axiosflask.get("/diary", {//
     params: {
       diary: diaryText.value,
     }
