@@ -91,10 +91,8 @@ public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFil
     
 	@Bean
 	public SecurityFilterChain userfilterChain(HttpSecurity http) throws Exception{
-		http.addFilterBefore(corsFilter, ChannelProcessingFilter.class);
-		
-		http.csrf( (csrf) -> csrf.disable());
-		http.exceptionHandling((exceptionHandler) -> 
+
+		http.exceptionHandling((exceptionHandler) ->
 		exceptionHandler
 		.accessDeniedHandler(accessDeniedHandler)
 		.authenticationEntryPoint(jwtAuthenticationEntryPoint)
