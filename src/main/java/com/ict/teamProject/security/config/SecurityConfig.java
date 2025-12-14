@@ -1,171 +1,111 @@
 
 package com.ict.teamProject.security.config;
+import static com.ict.teamProject.security.util.Whitelist.*;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ict.teamProject.member.service.impl.MemberMapper;
+import com.ict.teamProject.security.handler.*;
+import com.ict.teamProject.security.jwt.JwtAuthEntryPoint;
+import com.ict.teamProject.security.jwt.JwtAuthenticationFilter;
+import com.ict.teamProject.security.service.CustomUserDetailService;
+import com.ict.teamProject.security.util.JwtUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.channel.ChannelProcessingFilter;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
-import com.ict.teamProject.member.service.MemberDetailService;
-import com.ict.teamProject.security.config.auth.PrincipalDetailsService;
-import com.ict.teamProject.security.config.jwt.JwtAuthenticationEntryPoint;
-import com.ict.teamProject.security.config.jwt.JwtAuthenticationFilter;
-import com.ict.teamProject.security.config.jwt.JwtAuthorizationFilter;
-import com.ict.teamProject.security.config.jwt.OAuth2AuthenticationSuccessHandler;
-import com.ict.teamProject.security.config.oauth.PrincipalOauth2UserService;
-import com.ict.teamProject.security.handler.AuthenticationFailureHandler;
-import com.ict.teamProject.security.handler.UserAccessDeniedHandler;
-import com.ict.teamProject.security.handler.UserLogoutSeccessHandler;
+import java.util.Arrays;
+import java.util.List;
 
 
-
+@Configurable
 @Configuration
-@EnableWebSecurity 
-@EnableMethodSecurity(prePostEnabled = true) 
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+    private final JwtAuthEntryPoint authEntryPoint;
+    private final CustomUserDetailService userDetailService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtUtils jwtUtils;
+    private final MemberMapper memberMapper;
 
-public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
-	@Autowired
-	private MemberDetailService service;
-	
-	@Autowired
-	 private PrincipalDetailsService principalDetailsService;
-	
-	@Autowired
-	private PrincipalOauth2UserService principalOauth2UserService;
-	
     @Bean
-    public OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() {
-        return new OAuth2AuthenticationSuccessHandler();
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling((exception) -> exception.authenticationEntryPoint(authEntryPoint))
+                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(requests -> {
+                    requests.requestMatchers(PUBLIC_ENDPOINTS.toArray(new String[0])).permitAll()
+                            .requestMatchers(USER_ENDPOINTS.toArray(new String[0])).hasRole("USER")
+                            .anyRequest().authenticated();
+                })
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new FailedAuthenticationEntryPoint()))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(logout ->
+                        logout.logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
+                                .addLogoutHandler(new CustomLogoutHandler(jwtUtils))
+                                .logoutSuccessHandler(new CustomLogoutSuccessHandler())
+                                .deleteCookies("User-Token", "JSESSIONID")
+                );
+        return http.build();
+
     }
-    
-	private AuthenticationConfiguration authenticationConfiguration;
-	
-	public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
-		this.authenticationConfiguration=authenticationConfiguration;
-	}
-	
-	@Bean
-	public BCryptPasswordEncoder encodePwd() {
-		return new BCryptPasswordEncoder();
-	}
-    @Autowired
-    CorsFilter corsFilter;
-    
-    @Autowired
-    UserLogoutSeccessHandler userLogoutSeccessHandler;
-    
-    @Autowired
-    AuthenticationFailureHandler authenticationFailureHandler;
-    
-    @Autowired
-    UserAccessDeniedHandler accessDeniedHandler;
-    
-    @Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    
- 
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(CORS_ALLOW_URL);
+        configuration.setAllowedMethods(Arrays.asList(
+                HttpMethod.GET.name(),
+                HttpMethod.HEAD.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.PUT.name(),
+                HttpMethod.DELETE.name(),
+                HttpMethod.OPTIONS.name()
+        ));
+        configuration.setMaxAge(6000L);
+        configuration.setAllowedHeaders(List.of("*", "Origin"));//test
+        configuration.setAllowCredentials(true);
 
-    
-	@Bean
-	public SecurityFilterChain userfilterChain(HttpSecurity http) throws Exception{
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
-		http.exceptionHandling((exceptionHandler) ->
-		exceptionHandler
-		.accessDeniedHandler(accessDeniedHandler)
-		.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-				);
-		/*
-		* .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ 여기서 CorsConfig 연결
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/public/**").permitAll()
-                .anyRequest().authenticated()
-            );
-		*
-		* */
-		http
-			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-			.csrf(AbstractHttpConfigurer::disable)
-			.authorizeHttpRequests( (requests)->requests
+    // 이 부분이 없으면 StackOverflowError 발생
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
-//				.requestMatchers("/forgot-id","/forgot-password","/login-password",
-//				"/forgot-password-phone","/forgot-password-email").permitAll()
-			.requestMatchers("/**").permitAll()
-			.requestMatchers("/api/admin/**", "/api/access-control").hasAuthority("ROLE_ADMIN")
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
-//				.requestMatchers("/main","/exer/getData.do","/exer/get-today-data").permitAll()
-			.anyRequest().permitAll()
-			)
-				
-			.httpBasic( httpBasic->httpBasic.disable() )
-			.addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
-			.addFilter(new JwtAuthorizationFilter(authenticationConfiguration.getAuthenticationManager(),service))
-			.sessionManagement((sessionManagement) ->
-				sessionManagement
-					.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.formLogin((formLogin) ->
-				formLogin
-					
-					.usernameParameter("id")
-					.passwordParameter("pwd")
-					.loginProcessingUrl("/api/login")
-			)
-
-			.oauth2Login( (oauth2)-> 
-				oauth2
-					.userInfoEndpoint( userInfoEndpoint -> userInfoEndpoint 
-					.userService(principalOauth2UserService) )
-					.successHandler(oAuth2AuthenticationSuccessHandler())
-			)
- 			.logout((logout) ->
-				logout
-					.deleteCookies("User-Token")
-					.invalidateHttpSession(true)
-					.logoutSuccessHandler(userLogoutSeccessHandler)
-					
-			)
- 			
- 			;
-		System.out.println();
-		return http.build();
-	}
-
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowCredentials(true);
-		config.addAllowedOriginPattern("*");
-		config.addAllowedHeader("*");
-		config.addAllowedMethod("*");
-		config.addExposedHeader("Authorization"); // JWT 토큰 응답 시 노출
-		config.setMaxAge(3600L);
-
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
-		return source;
-	}
-	
+    @Bean
+    public PasswordEncoder passwordEncoder() {return new BCryptPasswordEncoder();}
 }

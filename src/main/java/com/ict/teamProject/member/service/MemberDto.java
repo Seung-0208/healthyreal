@@ -18,7 +18,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberDto { //testtest
+public class MemberDto {
 	private String id;
 	private String pwd;
 	private String name;

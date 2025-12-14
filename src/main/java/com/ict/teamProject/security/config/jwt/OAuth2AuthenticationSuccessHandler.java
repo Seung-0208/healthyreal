@@ -10,9 +10,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import com.ict.teamProject.member.service.MemberDetailService;
 import com.ict.teamProject.member.service.MemberDto;
-import com.ict.teamProject.member.service.MemberService;
 import com.ict.teamProject.security.config.auth.PrincipalDetails;
-import com.ict.teamProject.security.util.JWTTokens;
+import com.ict.teamProject.security.util.JwtTokens;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -41,7 +40,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 		Map<String,Object> payloads = new HashMap<>();
 		payloads.put("username",principalDetails.getUsername());
 		long expirationTime = 1000 * 60 * 60 * 1;//1시간
-		JWTTokens tokens = new JWTTokens();
+		JwtTokens tokens = new JwtTokens();
 		String token = tokens.createToken(principalDetails.getUsername(), payloads, expirationTime);
 		
 		Cookie cookie = new Cookie("User-Token", token                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          );

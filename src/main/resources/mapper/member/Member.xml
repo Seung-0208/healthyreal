@@ -106,7 +106,7 @@
 	</select>
 	
 	<select id="findByMemberId" parameterType="string" resultType="MemberDto">
-    SELECT id, gender, weight, height, goal_No, tel, user_address
+    SELECT id, gender, weight, height, goal_No, tel, user_address, pwd
     FROM member
     WHERE id = #{id}
 	</select>

@@ -24,15 +24,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class JWTTokens {
+public class JwtTokens {
 	private static SecretKey secretKey;
 	private static String secret;
-//	static {
-//		ResourceBundle resource=ResourceBundle.getBundle(KEY_PATH);
-//		String secretkey = resource.getString(KEY);
-//		byte[] secret=Base64.getEncoder().encodeToString(secretkey.getBytes()).getBytes(StandardCharsets.UTF_8);
-//		secretKey= Keys.hmacShaKeyFor(secret);
-//	}	
+
 	@PostConstruct
 	public void init() {
 		byte[] secretTobytes = Base64.getEncoder().encodeToString(secret.getBytes()).getBytes(StandardCharsets.UTF_8);
@@ -170,7 +165,7 @@ public class JWTTokens {
 		payloads.put("authority",getInfo.get("AUTHORITY"));
 		payloads.put("provider",getInfo.get("PROVIDER"));
     	long expirationTime = 1000 * 60 * 60 * 3;//3시간
-    	String token = JWTTokens.createToken(id, payloads, expirationTime);
+    	String token = JwtTokens.createToken(id, payloads, expirationTime);
 		Cookie cookie = new Cookie("User-Token", token);
 		cookie.setPath(req.getContextPath());
 		resp.addCookie(cookie);

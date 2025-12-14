@@ -4,13 +4,11 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ict.teamProject.security.util.JWTTokens;
+import com.ict.teamProject.security.util.JwtTokens;
 import com.ict.teamProject.member.service.MemberDetailService;
 import com.ict.teamProject.member.service.MemberDto;
 
@@ -66,11 +64,11 @@ public class MemberDtailController {
 		}
 
 		// 토큰이 없거나 토큰이 유효하지 않은 경우
-		if (token == null || !JWTTokens.verifyToken(token)) {
+		if (token == null || !JwtTokens.verifyToken(token)) {
 			throw new AccessDeniedException("비회원은 접근할 수 없습니다.");
 		}
 
-		Map username = JWTTokens.getTokenPayloads(token);
+		Map username = JwtTokens.getTokenPayloads(token);
 		String id = (String)username.get("username");
 
 		MemberDto userInfo = service.findByMemberInfo(id);

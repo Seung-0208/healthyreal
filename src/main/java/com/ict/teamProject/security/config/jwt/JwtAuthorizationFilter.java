@@ -4,7 +4,6 @@ package com.ict.teamProject.security.config.jwt;
 import java.io.IOException;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,10 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.ict.teamProject.security.config.auth.PrincipalDetails;
-import com.ict.teamProject.member.service.RegisterService;
 import com.ict.teamProject.member.service.MemberDetailService;
 import com.ict.teamProject.member.service.MemberDto;
-import com.ict.teamProject.security.util.JWTTokens;
+import com.ict.teamProject.security.util.JwtTokens;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -55,7 +53,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter{
 			return;
 		}
 		
-		JWTTokens tokens = new JWTTokens();
+		JwtTokens tokens = new JwtTokens();
 		
 		if(tokens.verifyToken(jwttoken)) {
 			System.out.println("유효한 토큰이다.");
