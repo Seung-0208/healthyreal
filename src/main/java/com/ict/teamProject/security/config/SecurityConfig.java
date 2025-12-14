@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.DefaultSecurityFilterChain;
@@ -98,16 +99,28 @@ public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFil
 		.accessDeniedHandler(accessDeniedHandler)
 		.authenticationEntryPoint(jwtAuthenticationEntryPoint)
 				);
-		http.authorizeHttpRequests( (requests)->requests
-				
+		/*
+		* .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ 여기서 CorsConfig 연결
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/public/**").permitAll()
+                .anyRequest().authenticated()
+            );
+		*
+		* */
+		http
+			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+			.csrf(AbstractHttpConfigurer::disable)
+			.authorizeHttpRequests( (requests)->requests
+
 //				.requestMatchers("/forgot-id","/forgot-password","/login-password",
 //				"/forgot-password-phone","/forgot-password-email").permitAll()
-				.requestMatchers("/**").permitAll()
-				.requestMatchers("/api/admin/**", "/api/access-control").hasAuthority("ROLE_ADMIN")
-				
+			.requestMatchers("/**").permitAll()
+			.requestMatchers("/api/admin/**", "/api/access-control").hasAuthority("ROLE_ADMIN")
+
 //				.requestMatchers("/main","/exer/getData.do","/exer/get-today-data").permitAll()
-				.anyRequest().permitAll() 
-				)
+			.anyRequest().permitAll()
+			)
 				
 			.httpBasic( httpBasic->httpBasic.disable() )
 			.addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
@@ -141,7 +154,20 @@ public class SecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFil
 		System.out.println();
 		return http.build();
 	}
-	
-	
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowCredentials(true);
+		config.addAllowedOriginPattern("*");
+		config.addAllowedHeader("*");
+		config.addAllowedMethod("*");
+		config.addExposedHeader("Authorization"); // JWT 토큰 응답 시 노출
+		config.setMaxAge(3600L);
+
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", config);
+		return source;
+	}
 	
 }
