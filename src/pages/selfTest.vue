@@ -64,15 +64,15 @@ const upload = async () => {
     isDialogVisible.value = false
 
     try {
-      // Use dummy data instead of calling the API during development/testing
-      // Dummy structure: [weight, skeletal muscle, body fat mass, BMI, percent body fat]
-      const dummyResponse = [89.5, 34.3, 28.4, 26.7, 31.7]
+      const response = await axiosflask.post('/ocr', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
 
-      console.log('Using dummy inbody data:', dummyResponse)
+      console.log(response.data)
       fileToUpload.value = null
-      // simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      inbodysV.value = dummyResponse
+      inbodysV.value = response.data
     } catch (error) {
       console.error(error)
     }

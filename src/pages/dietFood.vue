@@ -123,41 +123,25 @@ const getEatingRecord = async () => {
 // DB에서 특정 카테고리에 대한 레시피를 가져와서 레시피를 기준으로 그룹 묶고 랜덤 5개만 자식 컴포넌트에 넘기기 
 const getrecipe = async (connetId, choicecategory, index) => {
   console.log('들어온 아이디와, 카테고리', connetId, choicecategory, index)
+  await axios.get('/recipe/View.do', { params: { 'id': connetId, 'category': choicecategory } })
+    .then(response => {
+      // 음식명을 기준으로 데이터 묶기
+      recipedata.value = response.data.reduce((acc, curr) => {
+        const FOODNAMEAll = curr.FOODNAME
+        if (acc[FOODNAMEAll]) {
+          acc[FOODNAMEAll].push(curr)
+        } else {
+          acc[FOODNAMEAll] = [curr]
+        }
 
-  // If '식단 재추천' was clicked for the second card (index 1), show the specific S3 image
-  if (index === 1) {
-    const url = 'https://healthyreal-bucket.s3.ap-northeast-2.amazonaws.com/image/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C+(1).jpeg'
-    // wait 3 seconds before applying the recommendation
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    // Ensure recipedatach is reactive and contains an array with an object that has RECIPE_IMG
-    recipedatach.value[index] = [{ RECIPE_IMG: url, FOODNAME: '계란 샌드위치', RECIPE_TITLE: '' }]
-    // keep track of which card type was requested
-    dietPlansListtype.value = index
-    // clear any selectedGroups used by the recipe view
-    // selectedGroups.value = []
-    return
-  }
+        return acc // 콜백 함수에서 값을 반환하도록 수정
+      }, {})
+      console.log('그룹으로 묶였는지 확인 -> ', recipedata.value)
 
-  // Existing recipe fetch logic (kept commented for future use)
-  // await axios.get('/recipe/View.do', { params: { 'id': connetId, 'category': choicecategory } })
-  //   .then(response => {
-  //     // 음식명을 기준으로 데이터 묶기
-  //     recipedata.value = response.data.reduce((acc, curr) => {
-  //       const FOODNAMEAll = curr.FOODNAME
-  //       if (acc[FOODNAMEAll]) {
-  //         acc[FOODNAMEAll].push(curr)
-  //       } else {
-  //         acc[FOODNAMEAll] = [curr]
-  //       }
-
-  //       return acc // 콜백 함수에서 값을 반환하도록 수정
-  //     }, {})
-  //     console.log('그룹으로 묶였는지 확인 -> ', recipedata.value)
-
-  //     selectedGroups.value = getRandomGroups()
-  //     dietPlansListtype.value = index
-  //     console.log('랜덤 추출값:', selectedGroups.value)
-  //   })
+      selectedGroups.value = getRandomGroups()
+      dietPlansListtype.value = index
+      console.log('랜덤 추출값:', selectedGroups.value)
+    })
 }
 
 
@@ -278,15 +262,12 @@ watch(router, fetchProjectData, { immediate: true })
             {{ selectedCategory[list.index] || '카테고리' }} <!-- 선택한 카테고리를 표시 -->
           </VBtn>
           <VCardItem class="d-flex flex-column justify-center align-center" style="height: 250px; margin-top: 20px;">
-            <VAvatar variant="tonal" size="160" class="mb-2" style="width:160px; height:160px; overflow:hidden;">
-              <VImg v-if="list.index === 0"
-                style="height:160px; width:160px; object-fit:cover; display:block;"
-                :src="'https://healthyreal-bucket.s3.ap-northeast-2.amazonaws.com/image/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.jpeg'" />
-              <VImg v-else-if="!(recipedatach[list.index] && recipedatach[list.index].length) && !(dietinfo[list.index])"
-                style="height:160px; width:160px; object-fit:cover; display:block;" />
+            <VAvatar variant="tonal" size="160" class="mb-2">
+              <VImg v-if="!(recipedatach[list.index] && recipedatach[list.index].length) && !(dietinfo[list.index])"
+                size="160px" />
               <VImg v-else-if="!(recipedatach[list.index] && recipedatach[list.index].length) && dietinfo[list.index]"
-                style="height:160px; width:160px; object-fit:cover; display:block;" :src="dietinfo[list.index].recipe_img" />
-              <VImg v-else style="height:160px; width:160px; object-fit:cover; display:block;" :src="recipedatach[list.index][0].RECIPE_IMG" />
+                style="height: 160px;" :src="dietinfo[list.index].recipe_img" />
+              <VImg v-else style="height: 160px;" :src="recipedatach[list.index][0].RECIPE_IMG" />
             </VAvatar>
             <h6 class="text-h6" style="font-weight: bold;">
               <span
@@ -308,7 +289,7 @@ watch(router, fetchProjectData, { immediate: true })
 
           <VCardText
             v-if="(dietinfo[list.index] && dietinfo[list.index] != '') && !(recipedatach[list.index] && recipedatach[list.index].length)"
-            style=" width: auto;height: 100px;">
+            style=" width: auto;height: 500px;">
             <span>
               <div>
                 <div v-if="dietinfo[list.index]">
@@ -334,9 +315,28 @@ watch(router, fetchProjectData, { immediate: true })
               </div>
             </span>
           </VCardText>
+          <VCardText v-if="(recipedatach[list.index] && recipedatach[list.index].length)" style="height: 500px;">
+            <span>
+              <div v-for="(gro, index) in recipedatach[list.index]" :key="index">
+                <div v-if="index == 0 && gro.RECIPE_SEQ && gro.RECIPE_SEQ.length > 0" style="width: auto;">
+                  <br><strong style="margin: 0 20px;">[조리순서]</strong>
+                  <div style=" width: auto;max-height: 200px; overflow-y: auto;" class="scrollbar">
+                    <p v-for="(seq, seqIndex) in gro.RECIPE_SEQ.split('||')" :key="seqIndex" style="margin: 10px 20px;">
+                      {{ seqIndex + 1 }} ) {{ seq }}
+                    </p>
+                  </div>
+                  <br>
+                  <strong style="margin: 10px 20px;">[재료]</strong>
+                </div>
+                <span v-if="gro.FOODNAME">
+                  - {{ gro.INGREDIENT }} - {{ gro.RI_AMOUNT }}
+                </span>
+              </div>
+            </span>
+          </VCardText>
           <VCardText class="justify-center">
             <VBtn color="warning" variant="elevated" style=" width: 90px;margin-right: 5px;"
-              @click="getrecipe(connetId, choicecategorydata[list.index], list.index), isRecipe = false">
+              @click="getrecipe(connetId, choicecategorydata[list.index], list.index), isRecipe = true">
               식단 재추천
             </VBtn>
             <VBtn color="warning" variant="elevated"

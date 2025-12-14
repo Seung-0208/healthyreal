@@ -3,22 +3,43 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: front-config
-  # namespace: healthyreal
+  namespace: healthyreal
   labels:
     app: front
 data:
   # Kubernetes 내부 서비스 이름 사용 (같은 네임스페이스)
-  SPRING_API_BASE_URL: "http://spring-service/api"
-  FLASK_API_BASE_URL: "http://flask-service/ai"  
+  SPRING_API_BASE_URL: "http://backend-spring-svc:7002"
+  FLASK_API_BASE_URL: "http://backend-flask-svc:5000"  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: front
+  namespace: healthyreal
+  labels:
+    app: front
+spec:
+  type: ClusterIP
+  selector:
+    app: front
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: metrics
+      port: 8113  
+      targetPort: metrics
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: front
+  namespace: healthyreal
   labels:
     app: front
 spec:
-  replicas: 2                           # Flask 서버 2개 (필요시 scale up 가능)
+  replicas: 2
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: front
@@ -28,51 +49,86 @@ spec:
         app: front
     spec:
       containers:
-        - name: front-container
-          image: seung0208/front:latest   # ✅ Jenkins에서 push한 Docker 이미지
-          imagePullPolicy: Always
+        - name: front
+          image: zzmnxn/front:latest
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80              
+            - name: http
+              containerPort: 80
           envFrom:
             - configMapRef:
-                name: front-config         # ✅ .env 파일로 만든 Secret (선택사항)
-      restartPolicy: Always
+                name: front-config
+          # nginx envsubst 활성화를 위한 환경 변수 추가
+          env:
+            - name: NGINX_ENVSUBST_TEMPLATE_SUFFIX
+              value: ".template"
+            - name: NGINX_ENVSUBST_OUTPUT_DIR
+              value: "/etc/nginx/conf.d"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.1.0
+          args:
+            - -nginx.scrape-uri=http://127.0.0.1/status
+            - -web.listen-address=:8113
+          ports:
+            - name: metrics
+              containerPort: 8113
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+      imagePullSecrets:
+        - name: registry-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: front-service
+  name: front-metrics-nodeport
   labels:
-    app: front-service
+    app: front
+  namespace: healthyreal
 spec:
+  type: NodePort
   selector:
     app: front
-  type: ClusterIP
   ports:
-    - name: http
-      port: 80           # 클러스터 내부에서 접근할 포트
-      targetPort: 80     # 컨테이너의 Flask 포트 (Gunicorn --bind)
-      protocol: TCP
+    - name: metrics
+      port: 8113
+      targetPort: metrics
+      nodePort: 3113
 
-# ------------------------------------------
-# 3️⃣ Flask Ingress (외부 트래픽 유입)
-# ------------------------------------------
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: front-ingress
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
-spec:
-  rules:
-    - host: 13.124.109.82.nip.io     # ✅ k3s 마스터 노드 IP 기반 테스트용 도메인 (또는 실제 도메인)
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: front-service
-                port:
-                  number: 80
