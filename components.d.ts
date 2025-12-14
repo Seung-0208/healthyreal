@@ -40,7 +40,6 @@ declare module '@vue/runtime-core' {
     Chatbot: typeof import('./src/@core/components/Chatbot.vue')['default']
     ChooseRadios: typeof import('./src/views/demos/register/chooseRadios.vue')['default']
     ConfirmDialog: typeof import('./src/components/dialogs/ConfirmDialog.vue')['default']
-    copy: typeof import('./src/components/dialogs/UserCheckedRecipe copy.vue')['default']
     CreateAppDialog: typeof import('./src/components/dialogs/CreateAppDialog.vue')['default']
     CustomCheckboxes: typeof import('./src/@core/components/app-form-elements/CustomCheckboxes.vue')['default']
     CustomCheckboxesWithIcon: typeof import('./src/@core/components/app-form-elements/CustomCheckboxesWithIcon.vue')['default']

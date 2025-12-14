@@ -48,7 +48,7 @@ const foodRecommend = async id => {
     .then(response => {
       console.log('응답받은 행:', response.data)
       if (response.data === 0) {
-        axiosflask.get("/recommend/recommendFood", { params: { id: id } })
+        axiosflask.get("/food_recommend", { params: { id: id } })
       }
     })
 }
@@ -105,76 +105,74 @@ const loginStore = {
   },
   actions: {
     async login(context, loginObj) {
-      console.log('로그인 요청')
-      router.push('/main')
-      // const formdata = new FormData()
+      const formdata = new FormData()
 
-      // formdata.append("id", loginObj['id'])
-      // formdata.append("pwd", loginObj['pwd'])
-      // console.log('formdata:', formdata)
-      // await axios.post('/login', formdata, {
-      //   headers: {
-      //     'X-SKIP-INTERCEPTOR': true,
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      //   withCredentials: true,
-      // })
-      //   .then(res => {
-      //     console.log('여기까지는 들어옴?', res)
-      //     console.log(formdata.get("id"))
-      //     foodRecommend(formdata.get("id"))
+      formdata.append("id", loginObj['id'])
+      formdata.append("pwd", loginObj['pwd'])
+      console.log('formdata:', formdata)
+      await axios.post('/login', formdata, {
+        headers: {
+          'X-SKIP-INTERCEPTOR': true,
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true,
+      })
+        .then(res => {
+          console.log('여기까지는 들어옴?', res)
+          console.log(formdata.get("id"))
+          foodRecommend(formdata.get("id"))
 
-      //     //FMC 토큰 등록용 코드 start (로그인 한 사용자의 브라우저가 받은 FMC 토큰 값 저장)
-      //     if (messaging !== null) {
-      //       messaging.getToken(messaging, { vapidKey: config.vapidKey })
-      //         .then(token => {
-      //           console.log('사용자의 firebase토큰:', token)
-      //           axios.post("/fmctoken", JSON.stringify({
-      //             id: formdata.get("id"),
-      //             token: token,
-      //           }), { headers: { 'Content-Type': 'application/json' } })
-      //         })
-      //         .catch(err => console.log("[firebase]이미 등록된 사용자입니다"))
-      //     }
+          //FMC 토큰 등록용 코드 start (로그인 한 사용자의 브라우저가 받은 FMC 토큰 값 저장)
+          if (messaging !== null) {
+            messaging.getToken(messaging, { vapidKey: config.vapidKey })
+              .then(token => {
+                console.log('사용자의 firebase토큰:', token)
+                axios.post("/fmctoken", JSON.stringify({
+                  id: formdata.get("id"),
+                  token: token,
+                }), { headers: { 'Content-Type': 'application/json' } })
+              })
+              .catch(err => console.log("[firebase]이미 등록된 사용자입니다"))
+          }
 
-      //     getGoogleKey()
+          getGoogleKey()
 
 
-      //     //FMC 토큰 등록용 코드 end
-      //     if (res.status === 200) { // 로그인 요청이 성공했을 때만 토큰을 가져오는 요청을 실행
+          //FMC 토큰 등록용 코드 end
+          if (res.status === 200) { // 로그인 요청이 성공했을 때만 토큰을 가져오는 요청을 실행
 
 
-      //       return context.dispatch('getToken')
-      //     } else {
+            return context.dispatch('getToken')
+          } else {
 
-      //       throw new Error('Login failed')
-      //     }
-      //   })
-      //   .then(getTokenResponse => {
-      //     const token = getTokenResponse.data
+            throw new Error('Login failed')
+          }
+        })
+        .then(getTokenResponse => {
+          const token = getTokenResponse.data
 
-      //     if (context.state.rememberMe) { // 체크박스가 체크되어 있을 때만 아이디를 저장
-      //       localStorage.setItem('rememberedId', loginObj['id'])
-      //     } else { // 체크박스가 체크되어 있지 않을 때는 아이디를 삭제
-      //       localStorage.removeItem('rememberedId')
-      //     }
+          if (context.state.rememberMe) { // 체크박스가 체크되어 있을 때만 아이디를 저장
+            localStorage.setItem('rememberedId', loginObj['id'])
+          } else { // 체크박스가 체크되어 있지 않을 때는 아이디를 삭제
+            localStorage.removeItem('rememberedId')
+          }
 
-      //     console.log(token)
-      //     context.dispatch('saveToken', token)
+          console.log(token)
+          context.dispatch('saveToken', token)
 
-      //     router.push('/main')
+          router.push('/main')
 
-      //   })
-      //   .catch(error => {
-      //     console.log(error)
-      //     if (error.response && error.response.status === 401) {
-      //       throw new Error('아이디 또는 비밀번호를 확인해주세요')
-      //     } else {
-      //       throw new Error('알 수 없는 에러가 발생했습니다. 다시 시도해주세요.')
-      //     }
+        })
+        .catch(error => {
+          console.log(error)
+          if (error.response && error.response.status === 401) {
+            throw new Error('아이디 또는 비밀번호를 확인해주세요')
+          } else {
+            throw new Error('알 수 없는 에러가 발생했습니다. 다시 시도해주세요.')
+          }
 
 
-      //   })
+        })
     },
 
     async adminLogin(context, loginObj) {

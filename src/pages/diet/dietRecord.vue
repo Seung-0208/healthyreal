@@ -1,7 +1,7 @@
 <script setup>
 import NutrientAnalysis from '@/components/dialogs/NutrientAnalysis.vue'
 import axios from '@/plugins/axiosflask'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
@@ -52,70 +52,70 @@ const totalCholesterol = ref(0)
 
 const foodNamesString = ref('')
 
-// const foodocr = async imageFile => {
-//   console.log('foodocr 실행', imageFile)
+const foodocr = async imageFile => {
+  console.log('foodocr 실행', imageFile)
 
-//   // 이미지를 처리하기 전에 all_food_values를 빈 배열로 설정
-//   all_food_values = []
-//   try {
-//     const reader = new FileReader()
+  // 이미지를 처리하기 전에 all_food_values를 빈 배열로 설정
+  all_food_values = []
+  try {
+    const reader = new FileReader()
 
-//     reader.onloadend = async function () {
-//       const base64Encoded = reader.result.split(',')[1]
+    reader.onloadend = async function () {
+      const base64Encoded = reader.result.split(',')[1]
 
-//       console.log('제발', base64Encoded)
+      console.log('제발', base64Encoded)
 
-//       const formdata = new FormData()
+      const formdata = new FormData()
 
-//       formdata.append('base64Encoded', base64Encoded)
-//       try {
-//         const response = await axios.post('/vision/food-ocr', formdata)
-//         const data = response.data
+      formdata.append('base64Encoded', base64Encoded)
+      try {
+        const response = await axios.post('/foodOcr', formdata)
+        const data = response.data
 
-//         console.log('여기까지 들어옴', data)
+        console.log('여기까지 들어옴', data)
 
-//         before_food.value = data.detected_food_names[0]?.replace(/"/g, '').trim() // optional chaining 사용
+        before_food.value = data.detected_food_names[0]?.replace(/"/g, '').trim() // optional chaining 사용
 
-//         // detected_food_names 배열의 각 요소를 순회하면서 모든 값을 저장하기
-//         for (let i = 0; i < data.detected_food_names.length; i++) {
-//           //각 요소의 값이 존재하는지 확인하고 빈 값이 아니면 저장
-//           if (data.detected_food_names[i]) {
-//             all_food_values.push(data.detected_food_names[i].replace(/"/g, '').trim())
-//           }
-//         }
+        // detected_food_names 배열의 각 요소를 순회하면서 모든 값을 저장하기
+        for (let i = 0; i < data.detected_food_names.length; i++) {
+          //각 요소의 값이 존재하는지 확인하고 빈 값이 아니면 저장
+          if (data.detected_food_names[i]) {
+            all_food_values.push(data.detected_food_names[i].replace(/"/g, '').trim())
+          }
+        }
 
-//         console.log('저장한 데이터 확인 :', all_food_values)
+        console.log('저장한 데이터 확인 :', all_food_values)
 
-//         // 음식명이 존재하는 경우에만 처리
-//         if (all_food_values.length > 0) {
-//           // 음식 정보를 가져와서 결과값을 저장한다.
-//           const foodInfos = await Promise.all(all_food_values.map(food => getfoodinfostart(food)))
+        // 음식명이 존재하는 경우에만 처리
+        if (all_food_values.length > 0) {
+          // 음식 정보를 가져와서 결과값을 저장한다.
+          const foodInfos = await Promise.all(all_food_values.map(food => getfoodinfostart(food)))
 
-//           console.log('모든 음식 정보:', foodInfos)
+          console.log('모든 음식 정보:', foodInfos)
 
-//           bfood.value = all_food_values.join(',')
+          bfood.value = all_food_values.join(',')
 
-//           // foodInfos 배열에서 각 요소의 calory 속성을 합산
-//           totalCalory.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].calory), 0)
-//           totalCarbohydrate.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].carbohydrate), 0)
-//           totalProtein.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].protein), 0)
-//           totalFat.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].fat), 0)
-//           totalSodium.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].sodium), 0)
-//           totalCholesterol.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].cholesterol), 0)
+          // foodInfos 배열에서 각 요소의 calory 속성을 합산
+          totalCalory.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].calory), 0)
+          totalCarbohydrate.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].carbohydrate), 0)
+          totalProtein.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].protein), 0)
+          totalFat.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].fat), 0)
+          totalSodium.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].sodium), 0)
+          totalCholesterol.value = foodInfos.reduce((acc, cur) => acc + parseInt(cur[0].cholesterol), 0)
 
-//         } else {
-//           console.error('음식을 인식할 수 없습니다.')
-//         }
-//       } catch (error) {
-//         console.error('음식 정보를 가져오는 중 오류 발생:', error)
-//       }
-//     }
-//     reader.readAsDataURL(imageFile) // 이미지 파일을 읽고 base64 인코딩된 데이터를 얻음
-//   } catch (e) {
-//     console.log('뭔데..')
-//     console.error(e)
-//   }
-// }
+        } else {
+          console.error('음식을 인식할 수 없습니다.')
+        }
+      } catch (error) {
+        console.error('음식 정보를 가져오는 중 오류 발생:', error)
+      }
+    }
+    reader.readAsDataURL(imageFile) // 이미지 파일을 읽고 base64 인코딩된 데이터를 얻음
+  } catch (e) {
+    console.log('뭔데..')
+    console.error(e)
+  }
+}
 
 const getfoodinfostart = async data => {
   try {
@@ -149,7 +149,6 @@ const handleUpload = tagId => {
 
 const rules = [fileList => !fileList || !fileList.length || fileList[0].size < 1000000 || 'Avatar size should be less than 1 MB!']
 const isNutrientAnalysisVisible = ref(false) //모달창 컨트롤 변수
-const isLoading = ref(false) // 로딩 스피너 표시 제어
 
 
 const userdietinfo = ref([])
@@ -157,126 +156,101 @@ const userdietinfo = ref([])
 const dietinfo = ref([])
 const checkedItems = ref([])
 
-const handleSubmit = async (pConnetId, pSelectcurr, pBfood) => {
-  console.log('유저 ID :', pConnetId, '음식 :', pBfood, '식사타입:', pSelectcurr)
+const handleSubmit = async (connetId, selectcurr, bfood) => {
+  isNutrientAnalysisVisible.value = !isNutrientAnalysisVisible.value
+  console.log('유저 ID :', connetId, '음식 :', bfood, '식사타입:', selectcurr)
+  await axios.get('/saverecord/dietinfo.do', { params: { id: connetId, ae_foodname: bfood, ae_diettype: selectcurr } })
+    .then(response => {
+      console.log('받은 데이터 :', response.data) //오늘의 식사 data를 넘겨받음
+      console.log('받은 첫번째 데이터 :', response.data[0])
+      userdietinfo.value = response.data
+      console.log('받은 데이터 값 : ', userdietinfo.value)
 
-  // show loading spinner and disable submit
-  isLoading.value = true
+      axios.get('/Dietfood/DailyView.do', { params: { 'id': connetId } })
+        .then(response => {
+          if (response.data.length > 0) {
+            // 초기화
+            dietinfo.value = [[], [], []]
 
-  // Ensure the displayed food string is set so the totals block renders
-  // pBfood may be a ref or a plain string
-  const foodStr = pBfood && pBfood.value !== undefined ? pBfood.value : pBfood
-  if (foodStr && typeof foodStr === 'string') {
-    bfood.value = foodStr
-  } else if (!bfood.value) {
-    bfood.value = '업로드된 식단'
-  }
+            response.data.forEach(data => {
+              if (data.mealType === '아침' && selectcurr == data.mealType) {
+                dietinfo.value[0] = data
+                if (bfood.includes(dietinfo.value[0].eating_foodname)) {
+                  console.log("bfood는", dietinfo.value[0].eating_foodname, "을 포함하고 있습니다.")
+                  axios.post('/croom/implementationSetting.do', { id: connetId })
+                    .then(response => {
+                      checkedItems.value = []
+                      let eattingString = response.data.eatting
 
-  // Simulate analysis delay (3s) then populate dummy totals
-  setTimeout(() => {
-    totalCalory.value = 550
-    totalCarbohydrate.value = 85
-    totalProtein.value = 32
-    totalFat.value = 22
-    totalSodium.value = 900
-    totalCholesterol.value = 70
+                      // eattingString이 빈 문자열이 아닌 경우에만 처리
+                      if (eattingString) {
+                        eattingString = eattingString.replace(/\[|\]/g, '') // 대괄호 제거
+                        let eattingArray = eattingString.split(', ') // 문자열을 배열로 변환
+                        checkedItems.value = eattingArray
+                      }
 
-    // hide spinner and show nutrient modal
-    isLoading.value = false
-    isNutrientAnalysisVisible.value = true
-  }, 3000)
-  // await axios.get('/saverecord/dietinfo.do', { params: { id: connetId, ae_foodname: bfood, ae_diettype: selectcurr } })
-  //   .then(response => {
-  //     console.log('받은 데이터 :', response.data) //오늘의 식사 data를 넘겨받음
-  //     console.log('받은 첫번째 데이터 :', response.data[0])
-  //     userdietinfo.value = response.data
-  //     console.log('받은 데이터 값 : ', userdietinfo.value)
+                      checkedItems.value.push('B')
+                      axios.post('/croom/implementationFood.do', {
+                        foodCheckCount: checkedItems.value,
+                        id: connetId,
+                      })
+                    })
+                }
+              } else if (data.mealType === '점심' && selectcurr == data.mealType) {
+                dietinfo.value[1] = data
+                if (bfood.includes(dietinfo.value[1].eating_foodname)) {
+                  console.log("bfood는", dietinfo.value[1].eating_foodname, "을 포함하고 있습니다.")
+                  axios.post('/croom/implementationSetting.do', { id: connetId })
+                    .then(response => {
+                      checkedItems.value = []
+                      let eattingString = response.data.eatting
 
-  //     axios.get('/Dietfood/DailyView.do', { params: { 'id': connetId } })
-  //       .then(response => {
-  //         if (response.data.length > 0) {
-  //           // 초기화
-  //           dietinfo.value = [[], [], []]
+                      // eattingString이 빈 문자열이 아닌 경우에만 처리
+                      if (eattingString) {
+                        eattingString = eattingString.replace(/\[|\]/g, '') // 대괄호 제거
+                        let eattingArray = eattingString.split(', ') // 문자열을 배열로 변환
+                        checkedItems.value = eattingArray
+                      }
+                      console.log("받아온 이행률은??", checkedItems.value)
 
-  //           response.data.forEach(data => {
-  //             if (data.mealType === '아침' && selectcurr == data.mealType) {
-  //               dietinfo.value[0] = data
-  //               if (bfood.includes(dietinfo.value[0].eating_foodname)) {
-  //                 console.log("bfood는", dietinfo.value[0].eating_foodname, "을 포함하고 있습니다.")
-  //                 axios.post('/croom/implementationSetting.do', { id: connetId })
-  //                   .then(response => {
-  //                     checkedItems.value = []
-  //                     let eattingString = response.data.eatting
+                      // L을 배열에 추가
+                      checkedItems.value.push('L')
+                      console.log("L을 추가한 이행률은??", checkedItems.value)
 
-  //                     // eattingString이 빈 문자열이 아닌 경우에만 처리
-  //                     if (eattingString) {
-  //                       eattingString = eattingString.replace(/\[|\]/g, '') // 대괄호 제거
-  //                       let eattingArray = eattingString.split(', ') // 문자열을 배열로 변환
-  //                       checkedItems.value = eattingArray
-  //                     }
+                      axios.post('/croom/implementationFood.do', {
+                        foodCheckCount: checkedItems.value,
+                        id: connetId,
+                      })
+                    })
+                }
+              } else if (data.mealType === '저녁' && selectcurr == data.mealType) {
+                dietinfo.value[2] = data
+                if (bfood.includes(dietinfo.value[2].eating_foodname)) {
+                  console.log("bfood는", dietinfo.value[2].eating_foodname, "을 포함하고 있습니다.")
+                  axios.post('/croom/implementationSetting.do', { id: connetId })
+                    .then(response => {
+                      checkedItems.value = []
+                      let eattingString = response.data.eatting
 
-  //                     checkedItems.value.push('B')
-  //                     axios.post('/croom/implementationFood.do', {
-  //                       foodCheckCount: checkedItems.value,
-  //                       id: connetId,
-  //                     })
-  //                   })
-  //               }
-  //             } else if (data.mealType === '점심' && selectcurr == data.mealType) {
-  //               dietinfo.value[1] = data
-  //               if (bfood.includes(dietinfo.value[1].eating_foodname)) {
-  //                 console.log("bfood는", dietinfo.value[1].eating_foodname, "을 포함하고 있습니다.")
-  //                 axios.post('/croom/implementationSetting.do', { id: connetId })
-  //                   .then(response => {
-  //                     checkedItems.value = []
-  //                     let eattingString = response.data.eatting
-
-  //                     // eattingString이 빈 문자열이 아닌 경우에만 처리
-  //                     if (eattingString) {
-  //                       eattingString = eattingString.replace(/\[|\]/g, '') // 대괄호 제거
-  //                       let eattingArray = eattingString.split(', ') // 문자열을 배열로 변환
-  //                       checkedItems.value = eattingArray
-  //                     }
-  //                     console.log("받아온 이행률은??", checkedItems.value)
-
-  //                     // L을 배열에 추가
-  //                     checkedItems.value.push('L')
-  //                     console.log("L을 추가한 이행률은??", checkedItems.value)
-
-  //                     axios.post('/croom/implementationFood.do', {
-  //                       foodCheckCount: checkedItems.value,
-  //                       id: connetId,
-  //                     })
-  //                   })
-  //               }
-  //             } else if (data.mealType === '저녁' && selectcurr == data.mealType) {
-  //               dietinfo.value[2] = data
-  //               if (bfood.includes(dietinfo.value[2].eating_foodname)) {
-  //                 console.log("bfood는", dietinfo.value[2].eating_foodname, "을 포함하고 있습니다.")
-  //                 axios.post('/croom/implementationSetting.do', { id: connetId })
-  //                   .then(response => {
-  //                     checkedItems.value = []
-  //                     let eattingString = response.data.eatting
-
-  //                     // eattingString이 빈 문자열이 아닌 경우에만 처리
-  //                     if (eattingString) {
-  //                       eattingString = eattingString.replace(/\[|\]/g, '') // 대괄호 제거
-  //                       let eattingArray = eattingString.split(', ') // 문자열을 배열로 변환
-  //                       checkedItems.value = eattingArray
-  //                     }
-  //                     checkedItems.value.push('D')
-  //                     axios.post('/croom/implementationFood.do', {
-  //                       foodCheckCount: checkedItems.value,
-  //                       id: connetId,
-  //                     })
-  //                   })
-  //               }
-  //             }
-  //           })
-  //         }
-  //         console.log('가져온 유저 Eating_Record', dietinfo.value)
-  //       })
-  //   })
+                      // eattingString이 빈 문자열이 아닌 경우에만 처리
+                      if (eattingString) {
+                        eattingString = eattingString.replace(/\[|\]/g, '') // 대괄호 제거
+                        let eattingArray = eattingString.split(', ') // 문자열을 배열로 변환
+                        checkedItems.value = eattingArray
+                      }
+                      checkedItems.value.push('D')
+                      axios.post('/croom/implementationFood.do', {
+                        foodCheckCount: checkedItems.value,
+                        id: connetId,
+                      })
+                    })
+                }
+              }
+            })
+          }
+          console.log('가져온 유저 Eating_Record', dietinfo.value)
+        })
+    })
 }
 </script>
 
@@ -347,10 +321,10 @@ const handleSubmit = async (pConnetId, pSelectcurr, pBfood) => {
               지방 : {{ totalFat }} g
             </VCol>
             <VCol>
-              나트륨 : {{ totalSodium }} g
+              나트륨 : {{ totalSodium / 1000 }} g
             </VCol>
             <VCol>
-              콜레스트롤 : {{ totalCholesterol }} g
+              콜레스트롤 : {{ totalCholesterol / 1000 }} g
             </VCol>
           </VCardItem>
           <ShareProjectDialog v-model:isDialogVisible="isShareProjectDialogVisible" />
@@ -358,12 +332,10 @@ const handleSubmit = async (pConnetId, pSelectcurr, pBfood) => {
       </VCol>
     </VRow>
     <VRow :style="{ 'display': 'flex', 'justify-content': 'center' }">
-      <VBtn :disabled="isSubmitDisabled || isLoading" :style="{ 'margin-bottom': '50px' }"
+      <VBtn :disabled="isSubmitDisabled" :style="{ 'margin-bottom': '50px' }"
         @click="handleSubmit(connetId, selectcurr, bfood)">
-        <template v-if="isLoading">
-          <VProgressCircular indeterminate size="20" color="white" />
-        </template>
-        <template v-else>SUBMIT</template>
+        <!-- @click="isNutrientAnalysisVisible = !isNutrientAnalysisVisible" -->
+        SUBMIT
       </VBtn>
       <NutrientAnalysis v-model:isDialogVisible="isNutrientAnalysisVisible" :userdietinfo="userdietinfo" />
     </VRow>
