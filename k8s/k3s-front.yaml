@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: front
-          image: zzmnxn/front:latest
+          image: seung0208/front:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
