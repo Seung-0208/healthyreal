@@ -47,7 +47,7 @@ spec:
       containers:
         - name: front
           image: seung0208/front:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 80
