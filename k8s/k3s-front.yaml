@@ -99,10 +99,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: front-ingress
-  annotations:
-    kubernetes.io/ingress.class: "traefik"        # ✅ Traefik 명시
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
+  ingressClassName: traefik
   rules:
     - host: 13.124.109.82.nip.io
       http:
