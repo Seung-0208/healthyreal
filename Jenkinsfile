@@ -7,7 +7,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('jimin-dockerhub-credentials')
         CONTAINER_NAME = 'healthyreal-vue-dev'
         EXTERNAL_PORT = '7001'
-        INTERNAL_PORT = '7001'  // Dev server port
+        INTERNAL_PORT = '7001'  // Dev server port d
         DOCKER_NETWORK = 'healthyreal-network'
         
         // Build configuration
