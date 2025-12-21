@@ -8,8 +8,8 @@ pipeline {
 
     environment {
         // ✅ 환경 변수 정의
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // 젠킨스에 등록된 DockerHub ID/PW
-        DOCKER_IMAGE = "zzmnxn/front"
+        DOCKERHUB_CREDENTIALS = credentials('seung-dockerhub-credentials')  // 젠킨스에 등록된 DockerHub ID/PW
+        DOCKER_IMAGE = "seung0208/front"
         DEPLOY_USER = "ubuntu"
         DEPLOY_SERVER = "13.124.109.82"       // EC2 서버 IP (k3s 마스터)
         DEPLOY_PATH = "/home/ubuntu/k3s-deploy" // kubectl apply 실행 경로
@@ -69,7 +69,7 @@ pipeline {
             steps {
                 echo " 원격 서버에 배포(kubectl apply -f)"
                 script {
-                    sshagent(credentials: ['admin_team']) {
+                    sshagent(credentials: ['admin']) {
                         
                         // kubectl set image <리소스종류>/<리소스이름> <deployment 내부에 정의한 컨테이너이름>=<새이미지> [옵션]
                         sh """
