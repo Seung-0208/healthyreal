@@ -1,0 +1,18 @@
+https://fcm.googleapis.com//v1/projects/webpushtest-c99b3/messages:send
+Content-Type: application/json
+Authorization: bearer BIa23R2xZe0qRZYDcY5aXlxcBOFiujw7Vs-RLTPwEjQqmXAFgXNjRfWjBrjN_E0WWg6yUMmXncdutQN8zG6x2wY
+
+{
+  "message": {
+    "token": "e8GiH-XuS33mVAWgbK0O-A:APA91bEghLzkveNKPu7CMFz99I3SG9-9EzEj4TJXRzx62SxkrS4Wq38xiKNY_tAxsKqBzEhgeM9N2MTfveZK-PC024JAOfrDoAKJNBuGKUAoC4T0ODTxFBOEYMS4lmQ5u7NgxPi3sb_W",
+    "notification": {
+      "title": "Background Message Title",
+      "body": "Background message body"
+    },
+    "webpush": {
+      "fcm_options": {
+        "link": "https://dummypage.com"
+      }
+    }
+  }
+}
