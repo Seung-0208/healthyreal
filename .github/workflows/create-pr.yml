@@ -8,7 +8,7 @@ on:
       - "front/**"
       - "back/**"
       - "flask/**"
-      - "infra-config-db/**"
+      - "infra_db/**"
       - ".github/**"
 
 jobs:
@@ -44,46 +44,51 @@ jobs:
           front=false
           back=false
           flask=false
-          infra=false
+          infra_db=false
+          workflow=false
 
           while IFS= read -r f; do
             [[ "$f" == front/* ]] && front=true
             [[ "$f" == back/* ]] && back=true
             [[ "$f" == flask/* ]] && flask=true
-            [[ "$f" == infra-config-db/* ]] && infra=true
+            [[ "$f" == infra_db/* ]] && infra_db=true
+            [[ "$f" == .github/* ]] && workflow=true
           done <<< "$files"
 
           echo "front=$front" >> "$GITHUB_OUTPUT"
           echo "back=$back" >> "$GITHUB_OUTPUT"
           echo "flask=$flask" >> "$GITHUB_OUTPUT"
-          echo "infra-config-db=$infra" >> "$GITHUB_OUTPUT"
+          echo "infra_db=$infra_db" >> "$GITHUB_OUTPUT"   # ✅ key 하이픈 제거 권장
+          echo "workflow=$workflow" >> "$GITHUB_OUTPUT"
 
           labels=()
           $front && labels+=("front")
           $back && labels+=("back")
           $flask && labels+=("flask")
-          $infra && labels+=("infra-config-db")
+          $infra_db && labels+=("infra_db")
+          $workflow && labels+=("workflow")
 
           if [[ ${#labels[@]} -eq 0 ]]; then
             echo "should_create=false" >> "$GITHUB_OUTPUT"
           else
             echo "should_create=true" >> "$GITHUB_OUTPUT"
 
-            # PR 본문용 요약
             summary=""
             $front && summary="${summary}- front 변경\n"
             $back && summary="${summary}- back 변경\n"
             $flask && summary="${summary}- flask 변경\n"
-            $infra && summary="${summary}- infra-config-db 변경\n"
+            $infra_db && summary="${summary}- infra_db 변경\n"
+            $workflow && summary="${summary}- .github 변경\n"
 
             echo "summary<<EOF" >> "$GITHUB_OUTPUT"
             echo -e "$summary" >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"
 
-            # github-script로 넘길 labels(JSON 배열)
-            json="$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)"
+            # ✅ JSON을 반드시 한 줄로 만들기(-c)
+            json="$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s -c .)"
             echo "labels=$json" >> "$GITHUB_OUTPUT"
           fi
+
 
       - name: Create PR + Add Labels
         if: steps.changes.outputs.should_create == 'true'
@@ -138,7 +143,8 @@ jobs:
               front: "1f6feb",
               back: "238636",
               flask: "a371f7",
-              infra-config-db: "f85149",
+              infra_db: "f85149",
+              workflow: "cccccc",
             };
 
             for (const name of labels) {

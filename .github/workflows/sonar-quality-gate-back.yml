@@ -39,13 +39,16 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build & SonarCloud analysis (Spring Boot)
+        working-directory: back
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # SonarCloud 토큰
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-            ./mvnw clean verify -DskipTests=true sonar:sonar \
+          chmod +x mvnw
+          ./mvnw -B clean verify -DskipTests=true \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=healthyreal-back \
             -Dsonar.organization=seung-0208 \
-            -Dsonar.host.url=https://sonarcloud.io  \
+            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=src/main \
-            -Dsonar.projectBaseDir=back \
             -Dsonar.exclusions=**/target/**,**/*.class,**/application.properties,**/.env,**/.env.*,**/*.env,**/*key*,**/*secret*,**/*credential*,**/*.pem,**/*.key,**/*.cert,**/*.crt,**/*.p12,**/*.pfx,**/config.properties,**/*credentials*.json,**/src/test/**
+
