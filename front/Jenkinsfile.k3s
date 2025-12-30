@@ -52,7 +52,7 @@ pipeline {
             steps {
                 echo "🗂️ k3s-front.yaml 최신 버전을 서버로 동기화 (덮어쓰기 또는 신규 생성)"
                 script {
-                    sshagent(credentials: ['admin']) {
+                    sshagent(credentials: ['healthyreal-main']) {
                         // 서버에 yaml 폴더가 없으면 만들고, yaml 파일 덮어쓰기
                         sh """
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
@@ -69,7 +69,7 @@ pipeline {
             steps {
                 echo " 원격 서버에 배포(kubectl apply -f)"
                 script {
-                    sshagent(credentials: ['admin']) {
+                    sshagent(credentials: ['healthyreal-main']) {
                         
                         // kubectl set image <리소스종류>/<리소스이름> <deployment 내부에 정의한 컨테이너이름>=<새이미지> [옵션]
                         sh """

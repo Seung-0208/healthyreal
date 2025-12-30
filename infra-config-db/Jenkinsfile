@@ -2,12 +2,23 @@ pipeline {
     agent any
 
     environment {
-        REMOTE_USER = 'ubuntu'                            // 원격 서버 SSH 사용자
-        REMOTE_HOST = ''                      // 원격 서버 IP
-        REMOTE_PATH = '/home/ubuntu/k3s-deploy/infra-config-db'             // YAML이 저장될 경로
-        REPO_URL = 'https://github.com/devops-healthyreal/infra-config-db.git' // infra-config Git repo
-        SECRET_NAME = ''
-        MYSQL_ROOT_PASSWORD = ''            // 실제 값
+        REMOTE_USER  = 'ubuntu'
+        REMOTE_HOST  = ''  // 원격 서버 Public IP 또는 DNS
+
+        // 서버에 모노레포를 둘 "루트 폴더"
+        REMOTE_BASE  = '/home/ubuntu/k3s-deploy'
+
+        // 모노레포 내부에서 가져올 subtree(폴더)명
+        SUBTREE_DIR  = 'infra-config-db'
+
+        // 실제 매니페스트가 있는 작업 경로 (= subtree 디렉터리)
+        REMOTE_PATH  = "${REMOTE_BASE}/${SUBTREE_DIR}"
+
+        // ✅ 모노레포 URL로 변경해야 함
+        REPO_URL     = 'https://github.com/devops-healthyreal/<YOUR_MONOREPO>.git'
+
+        SECRET_NAME = 'mysql-secret'
+        MYSQL_ROOT_PASSWORD = ''
         MYSQL_USER = ''
         MYSQL_PASSWORD = ''
         MYSQL_DATABASE = ''
@@ -15,21 +26,44 @@ pipeline {
 
     stages {
 
-        stage('✅ 서버 접속 및 리포지토리 Pull') {
+        stage('✅ 서버 접속 및 Subtree(Sparse checkout) Pull') {
             steps {
-                echo "Pulling latest infra-config repository from ${REPO_URL}..."
-                sshagent (credentials: ['admin']) {
+                sshagent(credentials: ['healthyreal-main']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
                         set -e
-                        if [ ! -d ${REMOTE_PATH} ]; then
-                            sudo mkdir -p ${REMOTE_PATH}
-                            cd /home/ubuntu/k3s-deploy
-                            sudo git clone ${REPO_URL}
+
+                        # 1) 모노레포 루트 디렉터리 준비
+                        mkdir -p ${REMOTE_BASE}
+                        cd ${REMOTE_BASE}
+
+                        # 2) 최초 1회: sparse-checkout 설정으로 subtree만 체크아웃
+                        if [ ! -d .git ]; then
+                            echo "[INFO] init repo + sparse-checkout (${SUBTREE_DIR})"
+                            git init
+                            git remote add origin ${REPO_URL}
+
+                            # 최신 main만 가져오기(속도/용량 절감)
+                            echo "[INFO] 최신 main 브랜치 가져오기"
+                            git fetch --depth=1 origin main
+                            git checkout -b main FETCH_HEAD
+
+                            echo "[INFO] sparse-checkout 설정"
+                            git sparse-checkout init --cone
+                            git sparse-checkout set ${SUBTREE_DIR}
                         else
-                            cd ${REMOTE_PATH}
-                            sudo git pull origin main
+                            echo "[INFO] pull latest main (sparse 유지)"
+                            git fetch origin main
+                            git reset --hard origin/main
                         fi
+
+                        # 3) subtree 폴더 존재 확인
+                        if [ ! -d "${REMOTE_PATH}" ]; then
+                            echo "[ERROR] subtree dir not found: ${REMOTE_PATH}"
+                            exit 1
+                        fi
+
+                        echo "[INFO] Ready at ${REMOTE_PATH}"
                     '
                     """
                 }
@@ -38,26 +72,26 @@ pipeline {
 
         stage('✅ Secret 생성 (템플릿 기반)') {
             steps {
-                echo "Generating mysql-secret from template..."
-                sshagent (credentials: ['admin']) {
+                sshagent(credentials: ['healthyreal-main']) {
                     sh """
-                    ssh ${REMOTE_USER}@${REMOTE_HOST} '
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
+                        set -e
                         cd ${REMOTE_PATH}
 
                         # 템플릿을 복사하여 임시 파일로 만듦
-                        sudo cp mysql-secret-template.yaml mysql-secret.yaml
+                        cp mysql-secret-template.yaml mysql-secret.yaml
 
                         # placeholder 값을 실제 값으로 치환
-                        sudo sed -i "s#<MYSQL_ROOT_PASSWORD>#${MYSQL_ROOT_PASSWORD}#g" mysql-secret.yaml
-                        sudo sed -i "s#<MYSQL_USER>#${MYSQL_USER}#g" mysql-secret.yaml
-                        sudo sed -i "s#<MYSQL_PASSWORD>#${MYSQL_PASSWORD}#g" mysql-secret.yaml
-                        sudo sed -i "s#<MYSQL_DATABASE>#${MYSQL_DATABASE}#g" mysql-secret.yaml
+                        sed -i "s#<MYSQL_ROOT_PASSWORD>#${MYSQL_ROOT_PASSWORD}#g" mysql-secret.yaml
+                        sed -i "s#<MYSQL_USER>#${MYSQL_USER}#g" mysql-secret.yaml
+                        sed -i "s#<MYSQL_PASSWORD>#${MYSQL_PASSWORD}#g" mysql-secret.yaml
+                        sed -i "s#<MYSQL_DATABASE>#${MYSQL_DATABASE}#g" mysql-secret.yaml
 
                         # 기존 Secret 삭제 (존재할 경우)
-                        sudo kubectl delete secret ${SECRET_NAME} --ignore-not-found
+                        kubectl delete secret ${SECRET_NAME} --ignore-not-found
 
                         # Secret 생성
-                        sudo kubectl apply -f mysql-secret.yaml
+                        kubectl apply -f mysql-secret.yaml
                     '
                     """
                 }
@@ -66,21 +100,21 @@ pipeline {
 
         stage('✅ MySQL 실행 (PV, PVC, StatefulSet, Service)') {
             steps {
-                echo "Applying MySQL manifests..."
-                sshagent (credentials: ['admin']) {
+                sshagent(credentials: ['healthyreal-main']) {
                     sh """
-                    ssh ${REMOTE_USER}@${REMOTE_HOST} '
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
+                        set -e
                         cd ${REMOTE_PATH}
 
-                        #StatefulSet 재생성
+                        # StatefulSet 재생성(안전하게)
                         if kubectl get statefulset mysql >/dev/null 2>&1; then
                             echo "StatefulSet mysql already exists — deleting safely..."
                             kubectl delete statefulset mysql --cascade=orphan
                         fi
 
-                        sudo kubectl apply -f local-storage.yaml
-                        sudo kubectl apply -f mysql-pv.yaml
-                        sudo kubectl apply -f mysql.yaml
+                        kubectl apply -f local-storage.yaml
+                        kubectl apply -f mysql-pv.yaml
+                        kubectl apply -f mysql.yaml
                     '
                     """
                 }

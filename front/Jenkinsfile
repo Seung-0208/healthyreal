@@ -158,7 +158,7 @@ pipeline {
                 echo 'Deploying Vue Frontend to production server...'
                 echo '======================================'
                 script {
-                    sshagent(credentials: ['admin']) {
+                    sshagent(credentials: ['healthyreal-main']) {
                         sh """
                             ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} << EOF
                                 # Create directory if it doesn't exist
@@ -221,7 +221,7 @@ EOF
                 echo 'Verifying Vue Frontend deployment...'
                 echo '======================================'
                 script {
-                    sshagent(credentials: ['admin']) {
+                    sshagent(credentials: ['healthyreal-main']) {
                         // Check Vue deployment on production server
                         sh """
                             ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} << EOF
@@ -280,7 +280,7 @@ EOF
             
             // Print container logs if container exists on production server
             script {
-                sshagent(credentials: ['admin']) {
+                sshagent(credentials: ['healthyreal-main']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} << EOF
                             if docker ps -aq -f name=${CONTAINER_NAME}; then

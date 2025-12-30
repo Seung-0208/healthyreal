@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout & Build on Remote') {
             steps {
-                sshagent(credentials: ['admin']) {
+                sshagent(credentials: ['healthyreal-main']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} << EOF
                             set -e
@@ -41,7 +41,7 @@ EOF
 
         stage('Docker Compose Up on Remote') {
             steps {
-                sshagent(credentials: ['admin']) {
+                sshagent(credentials: ['healthyreal-main']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} << EOF
                             set -e
