@@ -45,24 +45,28 @@ jobs:
           back=false
           flask=false
           infra=false
+          workflow=false
 
           while IFS= read -r f; do
             [[ "$f" == front/* ]] && front=true
             [[ "$f" == back/* ]] && back=true
             [[ "$f" == flask/* ]] && flask=true
             [[ "$f" == infra-config-db/* ]] && infra=true
+            [[ "$f" == .github/* ]] && workflow=true
           done <<< "$files"
 
           echo "front=$front" >> "$GITHUB_OUTPUT"
           echo "back=$back" >> "$GITHUB_OUTPUT"
           echo "flask=$flask" >> "$GITHUB_OUTPUT"
           echo "infra-config-db=$infra" >> "$GITHUB_OUTPUT"
+          echo "workflow=$workflow" >> "$GITHUB_OUTPUT"
 
           labels=()
           $front && labels+=("front")
           $back && labels+=("back")
           $flask && labels+=("flask")
           $infra && labels+=("infra-config-db")
+          $workflow && labels+=("workflow")
 
           if [[ ${#labels[@]} -eq 0 ]]; then
             echo "should_create=false" >> "$GITHUB_OUTPUT"
@@ -75,6 +79,7 @@ jobs:
             $back && summary="${summary}- back 변경\n"
             $flask && summary="${summary}- flask 변경\n"
             $infra && summary="${summary}- infra-config-db 변경\n"
+            $workflow && summary="${summary}- .github 변경\n"
 
             echo "summary<<EOF" >> "$GITHUB_OUTPUT"
             echo -e "$summary" >> "$GITHUB_OUTPUT"
@@ -139,6 +144,7 @@ jobs:
               back: "238636",
               flask: "a371f7",
               infra-config-db: "f85149",
+              workflow: "cccccc",
             };
 
             for (const name of labels) {
