@@ -44,25 +44,25 @@ jobs:
           front=false
           back=false
           flask=false
-          infra-config-db=false
+          infra=false
 
           while IFS= read -r f; do
             [[ "$f" == front/* ]] && front=true
             [[ "$f" == back/* ]] && back=true
             [[ "$f" == flask/* ]] && flask=true
-            [[ "$f" == infra-config-db/* ]] && infra-config-db=true
+            [[ "$f" == infra-config-db/* ]] && infra=true
           done <<< "$files"
 
           echo "front=$front" >> "$GITHUB_OUTPUT"
           echo "back=$back" >> "$GITHUB_OUTPUT"
           echo "flask=$flask" >> "$GITHUB_OUTPUT"
-          echo "infra-config-db=$infra-config-db" >> "$GITHUB_OUTPUT"
+          echo "infra-config-db=$infra" >> "$GITHUB_OUTPUT"
 
           labels=()
           $front && labels+=("front")
           $back && labels+=("back")
           $flask && labels+=("flask")
-          $infra-config-db && labels+=("infra-config-db")
+          $infra && labels+=("infra-config-db")
 
           if [[ ${#labels[@]} -eq 0 ]]; then
             echo "should_create=false" >> "$GITHUB_OUTPUT"
@@ -74,7 +74,7 @@ jobs:
             $front && summary="${summary}- front 변경\n"
             $back && summary="${summary}- back 변경\n"
             $flask && summary="${summary}- flask 변경\n"
-            $infra-config-db && summary="${summary}- infra-config-db 변경\n"
+            $infra && summary="${summary}- infra-config-db 변경\n"
 
             echo "summary<<EOF" >> "$GITHUB_OUTPUT"
             echo -e "$summary" >> "$GITHUB_OUTPUT"

@@ -3,7 +3,7 @@ name: Auto PR from develop to main
 on:
   push:
     branches:
-      - develop
+      - develop #test
 
 jobs:
   create-pr:
