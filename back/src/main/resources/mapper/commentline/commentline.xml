@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 매퍼파일 -->
+<mapper namespace="com.ict.teamProject.commentline.service.impl.CommentLineMapper">
+	<resultMap type="CommentLineDto" id="CommentLineResult">
+		 <!-- 'no'라는 속성은 쿼리 결과의 'no' 컬럼에 매핑. -->
+		<result property="c_no" column="C_NO"/>
+		<result property="id" column="ID"/>
+		<result property="bbs_no" column="BBS_NO"/>
+		<result property="ccomment" column="CCOMMENT"/>
+		<result property="parent_comment" column="PARENT_COMMENT"/>
+		<result property="postDate" column="POSTDATE"/>
+		<result property="update_time" column="UPDATE_TIME"/>
+		<result property="deleted" column="DELETED"/>
+		<result property="level" column="LEVEL"/>
+	</resultMap>
+			
+	<!-- 댓글 전체 뿌리기 -->	
+	 <select id="findAll" resultType="Map">
+		 with recursive CommentTree as (
+			 #루트 댓글
+			 select
+				 c.bbs_no,
+				 c.id,
+				 c.c_no,
+				 c.parent_comment,
+				 1 as level,
+				 c.comment,
+				 c.postdate,
+				 c.deleted,
+				 p.pro_filepath as pro_filepath
+			 from commentline c
+			 join profile p on c.id = p.id
+			 where c.parent_comment is null
+
+			 union all
+
+			 #자식댓글
+			 select
+				 c.bbs_no,
+				 c.id,
+				 c.c_no,
+				 c.parent_comment,
+				 ct.level + 1 as level,
+				 c.comment,
+				 c.postdate,
+				 c.deleted,
+				 p.pro_filepath as pro_filepath
+			 from commentline c
+			 join profile p on c.id = p.id
+			 inner join CommentTree ct on c.parent_comment = ct.c_no
+		 )
+		 select *
+		 from CommentTree
+		 order by level, c_no;
+	 </select>
+	 	
+	<!-- 최상위 댓글 입력 -->
+	 <insert id="save" parameterType="Map">
+		INSERT INTO commentline(ID, BBS_NO, CCOMMENT) VALUES (#{id}, #{bbs_no}, #{ccomment})
+	 </insert>
+	 <!-- 대댓글 -->
+	 <insert id="save_parent" parameterType="Map">
+		INSERT INTO commentline(ID, BBS_NO, CCOMMENT, PARENT_COMMENT) VALUES (#{id}, #{bbs_no}, #{ccomment}, #{parent_comment})
+	 </insert>
+	 
+	 <select id="userprofiles" parameterType="Map">
+	 	<!-- 특정 게시물에 댓글 작성한 유저 프로필가져오기 -->
+		SELECT CL.ID, CL.BBS_NO, P.PRO_FILEPATH FROM (SELECT * FROM commentline CL WHERE BBS_NO = #{bbs_no}) CL JOIN profile P ON CL.ID = P.ID
+	 </select>
+	 
+	 <delete id="delete" parameterType="Map">
+	 	DELETE FROM commentline WHERE C_NO = #{c_no}
+	 </delete>
+	 
+	 <update id="updatefindByCommentLine" parameterType="String">
+	 	UPDATE commentline SET CCOMMENT = #{ccomment} WHERE C_NO = #{c_no}
+	 </update>
+	<!-- 스프링 씨큐리티 회원 입력용(REST API서비스)
+	<insert id="saveUser" parameterType="Map">
+		INSERT INTO member VALUES(#{id},#{pwd},#{name},DEFAULT,DEFAULT)
+	</insert> -->
+</mapper>

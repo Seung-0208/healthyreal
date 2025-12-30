@@ -1,0 +1,74 @@
+# ------------------------------------------
+# 1️⃣ Deployment
+# ------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-app
+  labels:
+    app: spring-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-app
+  template:
+    metadata:
+      labels:
+        app: spring-app
+    spec:
+      containers:
+        - name: healthyreal-spring-container
+          image: seung0208/healthyreal-spring:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 7002
+          envFrom:
+            - secretRef:
+                name: spring-env-secret
+          resources:
+            requests: # 최소 보장 리소스
+              cpu: "250m"           # 0.25 CPU (= 1코어의 25%)
+              memory: "512Mi"       # 512MB 메모리 요청
+            limits: # 최대 허용 리소스
+              cpu: "500m"           # 0.5 CPU
+              memory: "1Gi"         # 최대 1GB
+# ------------------------------------------
+# 2️⃣ Service
+# ------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-service
+spec:
+  selector:
+    app: spring-app
+  type: ClusterIP
+  ports:
+    - port: 7002
+      targetPort: 7002
+      protocol: TCP
+# ------------------------------------------
+# 3️⃣ Ingress
+# ------------------------------------------
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spring-ingress
+  annotations:
+    kubernetes.io/ingress.class: "traefik"        # ✅ Traefik 명시
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - host: 13.124.109.82.nip.io
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-service
+                port:
+                  number: 7002

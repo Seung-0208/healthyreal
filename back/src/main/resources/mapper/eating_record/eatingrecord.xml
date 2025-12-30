@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ict.teamProject.eating_record.EatingRecordMapper">	
+	
+	<insert id="savediet" parameterType="Map">
+		Insert INTO eating_record(ID, MEALTYPE,EATING_FOODNAME,EATING_RECIPECODE) VALUES(#{id},#{mealtype}, #{eating_foodname}, #{eating_recipeCode})
+	</insert>
+	
+	<select id="getdailydiet" resultType="EatingRecordDto">
+		SELECT er.*, fl.calory,r.RECIPE_TITLE, r.RECIPE_URL, r.RECIPE_SEQ, r.RECIPE_IMG FROM 
+	    		(SELECT * FROM eating_record WHERE ID = #{id} AND DATE_FORMAT(EATING_DATE, '%Y-%m-%d') = DATE_FORMAT(current_timestamp, '%Y-%m-%d')) er
+	    		JOIN foodlist fl ON fl.FOODNAME = er.eating_foodname
+	    		JOIN recipe r ON er.EATING_RECIPECODE = r.RECIPECODE
+		    	ORDER BY 
+			    CASE 
+			        WHEN er.MEALTYPE = '아침' THEN 1
+			        WHEN er.MEALTYPE = '점심' THEN 2
+			        ELSE 3
+			    END
+	</select>
+	
+	<update id="updatediet" parameterType="Map">
+		UPDATE eating_record
+			SET 
+			    EATING_FOODNAME = #{eating_foodname},
+			    EATING_RECIPECODE = #{eating_recipeCode}
+			WHERE
+			    ID = #{id} AND MEALTYPE = #{mealtype} AND DATE_FORMAT(EATING_DATE, '%Y-%m-%d') = DATE_FORMAT(current_timestamp, '%Y-%m-%d')
+	</update>
+	
+	<select id="checkdailydata" resultType="int">
+		SELECT COUNT(*) FROM eating_record 
+		WHERE id = #{id} and DATE_FORMAT(EATING_DATE, '%Y-%m-%d') = DATE_FORMAT(current_timestamp, '%Y-%m-%d')
+	</select>
+	
+	<select id="checkAlldata" resultType="int">
+		SELECT COUNT(*) FROM eating_record 
+	    WHERE id = #{id}
+	    AND DATE_FORMAT(EATING_DATE, '%Y-%m-%d') NOT IN (DATE_FORMAT(current_timestamp, '%Y-%m-%d'), DATE_FORMAT(current_timestamp-1, '%Y-%m-%d'))
+	</select>
+	
+	
+	<insert id="defaultbdata" parameterType="Map">
+		INSERT INTO eating_record(ID, MEALTYPE,EATING_FOODNAME,EATING_RECIPECODE) VALUES(#{id},'아침', '바질페스토볶음밥', 7006705)
+	</insert>
+	
+	<insert id="defaultldata" parameterType="Map">
+		INSERT INTO eating_record(ID, MEALTYPE,EATING_FOODNAME,EATING_RECIPECODE) VALUES(#{id},'점심', '새우두부찌개', 6890777)
+	</insert>
+	
+	<insert id="defaultddata" parameterType="Map">
+		INSERT INTO eating_record(ID, MEALTYPE,EATING_FOODNAME,EATING_RECIPECODE) VALUES(#{id},'저녁', '마요네즈닭다리스테이크', 6841156)
+	</insert>
+
+  
+	<select id="getrecipeNingredients" resultType="ER_IngredientsDto">
+		SELECT INGREDIENT,RECIPECODE,RI_AMOUNT FROM recipe_ingredients WHERE RECIPECODE = #{eating_recipeCode}
+	</select>
+	
+	<select id="checkdailyexercisedata" parameterType="String">
+		SELECT COUNT(*) FROM exercise_record WHERE ID = #{id} AND DATE_FORMAT(ER_DATE, '%Y-%m-%d') = DATE_FORMAT(current_timestamp, '%Y-%m-%d')
+	</select>
+	
+	<insert id="defaultexercise1" parameterType="String">
+		INSERT INTO exercise_record(ID, E_NAME) VALUES(#{id}, 'Incline dumbbell biceps curl')
+	</insert>
+	<insert id="defaultexercise2" parameterType="String">
+		INSERT INTO exercise_record(ID, E_NAME) VALUES(#{id}, 'Band-assisted pull-up')
+	</insert>
+	<insert id="defaultexercise3" parameterType="String">
+		INSERT INTO exercise_record(ID, E_NAME) VALUES(#{id}, 'Single-leg depth squat')
+	</insert>
+
+<!--  
+	<select id="getdailydiet" resultType="EatingRecordDto">
+		SELECT rec.*, ri.INGREDIENT, ri.RI_AMOUNT FROM
+			(SELECT er.*,r.RECIPE_TITLE, r.RECIPE_URL, r.RECIPE_SEQ, r.RECIPE_IMG FROM 
+	    		(SELECT * FROM eating_record WHERE ID = #{id} AND TO_CHAR(EATING_DATE, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD')) er 
+	    		JOIN RECIPE r ON er.EATING_RECIPECODE = r.RECIPECODE
+		    	ORDER BY 
+			    CASE 
+			        WHEN er.MEALTYPE = '아침' THEN 1
+			        WHEN er.MEALTYPE = '점심' THEN 2
+			        ELSE 3
+			    END
+			) rec JOIN recipe_ingredients ri ON rec.EATING_RECIPECODE = ri.RECIPECODE
+	</select>
+-->
+</mapper>

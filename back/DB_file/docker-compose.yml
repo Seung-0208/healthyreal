@@ -1,0 +1,24 @@
+services:
+  # MYSQL
+  mysql:
+    image: mysql:8.0
+    container_name: healthyreal-db-backonly
+    restart: "no" #임시 수정
+    env_file:
+      - ./.env.docker
+    ports:
+      - "13306:3306" #호스트포트:내부포트
+    expose:
+      - "3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./healthyrealdb.sql:/docker-entrypoint-initdb.d/healthyrealdb.sql:ro 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+      
+volumes:
+  mysql_data: #MYSQL 영속화 볼륨 

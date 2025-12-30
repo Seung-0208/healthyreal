@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ict.teamProject.tabcount.service.impl.TabMapper">	
+
+	<!-- 커뮤니티 -->
+	<select id="findComm" parameterType="java.time.LocalDate" resultType="int">
+		SELECT COMMUNITYPAGE FROM tabcount WHERE TABDATE = DATE(#{today})
+	</select>
+	
+	<update id="setComm" parameterType="int">
+		UPDATE tabcount SET COMMUNITYPAGE=#{num} WHERE TABDATE=DATE(NOW())
+	</update>
+	
+	<insert id="insertComm">
+		INSERT INTO tabcount VALUES(DATE(NOW()),0,0,0,1)
+	</insert>
+	
+	<!-- 운동 -->
+	<select id="findExer" parameterType="java.time.LocalDate" resultType="int">
+		SELECT EXERCISEPAGE FROM tabcount WHERE TABDATE = DATE(#{today})
+	</select>
+	
+	<update id="setExer" parameterType="int">
+		UPDATE tabcount SET EXERCISEPAGE=#{num} WHERE TABDATE=DATE(NOW())
+	</update>
+	
+	<insert id="insertExer">
+		INSERT INTO tabcount VALUES(DATE(NOW()),1,0,0,0)
+	</insert>	
+	
+	<!-- 식단 -->
+	<select id="findDiet" parameterType="java.time.LocalDate" resultType="int">
+		SELECT DIETPAGE FROM tabcount WHERE TABDATE = DATE(#{today})
+	</select>
+	
+	<update id="setDiet" parameterType="int">
+		UPDATE tabcount SET DIETPAGE=#{num} WHERE TABDATE=DATE(NOW())
+	</update>
+	
+	<insert id="insertDiet">
+		INSERT INTO tabcount VALUES(DATE(NOW()),0,1,0,0)
+	</insert>	
+	
+	<!-- 심리 -->
+	<select id="findDiary" parameterType="java.time.LocalDate" resultType="int">
+		SELECT MINDPAGE FROM tabcount WHERE TABDATE = DATE(#{today})
+	</select>
+	
+	<update id="setDiary" parameterType="int">
+		UPDATE tabcount SET MINDPAGE=#{num} WHERE TABDATE=DATE(NOW())
+	</update>
+	
+	<insert id="insertDiary">
+		INSERT INTO tabcount VALUES(DATE(NOW()),0,0,1,0)
+	</insert>	
+	
+	<!-- 전체 데이타 가져오기 -->
+	<select id="findAllTab" resultType="Tab">
+		SELECT * FROM tabcount ORDER BY TABDATE
+	</select>	
+
+
+	
+</mapper>

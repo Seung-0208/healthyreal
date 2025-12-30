@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ict.teamProject.selftest.SelftestMapper">	
+
+	<select id="findAllAllergy" resultType="AllergyInfoDto">
+		SELECT * FROM allergy_info
+	</select>	
+
+	<select id="findAllHateFood" resultType="HateFoodInfoDto">
+		SELECT * FROM hatefood_info
+	</select>
+	
+	<insert id="saveMemberAllergy" parameterType="Map">
+		INSERT INTO member_allergy(ID, ALLERGY_NO) VALUES(#{id}, #{allergy_no})
+	</insert>
+
+	<insert id="saveMemberHateFood" parameterType="Map">
+		INSERT INTO member_hatefood(ID, HATEFOOD_NO) VALUES(#{id}, #{hatefood_no})
+	</insert>
+	
+	<select id="getMemberAllergy" resultType="MemberAllergyDto">
+		SELECT * FROM member_allergy WHERE ID = #{id}
+	</select>
+
+	<select id="getMemberHateFood" resultType="MemberHateFoodDto">
+		SELECT * FROM member_hatefood WHERE ID = #{id}
+	</select>
+	
+	<select id="findAllergy" resultType="AllergyInfoDto">
+		SELECT * FROM allergy_info WHERE ALLERGY_NO = #{allergy_no}
+	</select>
+
+	<select id="findHateFood" resultType="HateFoodInfoDto">
+		SELECT * FROM hatefood_info WHERE HATEFOOD_NO = #{hatefood_no}
+	</select>
+	
+	<!-- ✅ 여기 두 부분 수정됨 -->
+	<delete id="deleteAllAllergy" parameterType="String">
+		DELETE FROM member_allergy WHERE ID = #{id}
+	</delete>
+
+	<delete id="deleteAllHateFood" parameterType="String">
+		DELETE FROM member_hatefood WHERE ID = #{id}
+	</delete>
+	
+	<insert id="saveInbody" parameterType="Map">
+		INSERT INTO inbody_info(ID, Inb_Weight, Inb_SMM, Inb_BFM, Inb_BMI, Inb_PBF)
+		VALUES(#{id}, #{inb_weight}, #{inb_smm}, #{inb_bfm}, #{inb_bmi}, #{inb_pbf})
+	</insert>	
+	
+	<select id="findinbody" parameterType="String" resultType="InbodyInfoDto">
+		SELECT * 
+		FROM (
+		    SELECT *
+		    FROM inbody_info
+		    WHERE ID = #{id}
+		    ORDER BY INB_DATE DESC
+		)
+		WHERE ROWNUM = 1
+	</select>
+
+	<select id="findAllInbody" parameterType="String" resultType="InbodyInfoDto">
+	    SELECT *
+	    FROM inbody_info
+	    WHERE ID = #{id}
+	    ORDER BY INB_DATE DESC
+	</select>
+</mapper>
