@@ -9,7 +9,7 @@ pipeline {
         REMOTE_BASE  = '/home/ubuntu/k3s-deploy'
 
         // 모노레포 내부에서 가져올 subtree(폴더)명
-        SUBTREE_DIR  = 'infra-config-db'
+        SUBTREE_DIR  = 'infra_db'
 
         // 실제 매니페스트가 있는 작업 경로 (= subtree 디렉터리)
         REMOTE_PATH  = "${REMOTE_BASE}/${SUBTREE_DIR}"
