@@ -29,18 +29,28 @@ pipeline {
     }
 
     stage('Detect Changes') {
-      steps {
-        script {
-          // ✅ main merge 빌드 기준: 직전 커밋과 비교 (PR merge commit 기준)
-          def changed = sh(script: "git diff --name-only HEAD~1..HEAD", returnStdout: true).trim()
-          echo "Changed files:\n${changed}"
+        steps {
+            script {
+            def changedRaw = sh(script: "git diff --name-only HEAD~1..HEAD", returnStdout: true)
+            echo "Changed files:\n${changedRaw}"
 
-          env.CHANGE_FRONT  = (changed =~ /(^|\\n)front\\//) ? "true" : "false"
-          env.CHANGE_SPRING = (changed =~ /(^|\\n)back\\//)  ? "true" : "false"
+            def files = changedRaw.readLines()   // ✅ \r\n, \n 모두 안전하게 처리
 
+            // 1) “back/**면 spring 변경”으로 볼 거면 이렇게
+            def springChanged = files.any { it.startsWith('back/') }
+            def frontChanged  = files.any { it.startsWith('front/') }
+
+            // 2) 만약 back/.github 같은 건 배포 트리거에서 제외하고 싶으면(추천)
+            // def springChanged = files.any { it.startsWith('back/') && !it.startsWith('back/.github/') }
+
+            env.CHANGE_FRONT  = frontChanged  ? "true" : "false"
+            env.CHANGE_SPRING = springChanged ? "true" : "false"
+
+            echo "CHANGE_FRONT=${env.CHANGE_FRONT}, CHANGE_SPRING=${env.CHANGE_SPRING}"
+            }
         }
-      }
     }
+
 
     stage('Login DockerHub') {
       when { anyOf { environment name: 'CHANGE_FRONT', value: 'true'
