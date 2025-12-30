@@ -1,0 +1,172 @@
+name: Auto PR from develop to main (monorepo)
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "front/**"
+      - "back/**"
+      - "flask/**"
+      - "infra-config-db/**"
+      - ".github/**"
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write   # ✅ 라벨 생성/부착은 issues 권한이 필요함
+
+    steps:
+      - name: Checkout (full history for diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed areas
+        id: changes
+        shell: bash
+        run: |
+          set -e
+          BASE="${{ github.event.before }}"
+          HEAD="${{ github.sha }}"
+
+          if [[ "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+            BASE="$(git rev-parse HEAD^)"
+          fi
+
+          files="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "Changed files:"
+          echo "$files"
+
+          front=false
+          back=false
+          flask=false
+          infra-config-db=false
+
+          while IFS= read -r f; do
+            [[ "$f" == front/* ]] && front=true
+            [[ "$f" == back/* ]] && back=true
+            [[ "$f" == flask/* ]] && flask=true
+            [[ "$f" == infra-config-db/* ]] && infra-config-db=true
+          done <<< "$files"
+
+          echo "front=$front" >> "$GITHUB_OUTPUT"
+          echo "back=$back" >> "$GITHUB_OUTPUT"
+          echo "flask=$flask" >> "$GITHUB_OUTPUT"
+          echo "infra-config-db=$infra-config-db" >> "$GITHUB_OUTPUT"
+
+          labels=()
+          $front && labels+=("front")
+          $back && labels+=("back")
+          $flask && labels+=("flask")
+          $infra-config-db && labels+=("infra-config-db")
+
+          if [[ ${#labels[@]} -eq 0 ]]; then
+            echo "should_create=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_create=true" >> "$GITHUB_OUTPUT"
+
+            # PR 본문용 요약
+            summary=""
+            $front && summary="${summary}- front 변경\n"
+            $back && summary="${summary}- back 변경\n"
+            $flask && summary="${summary}- flask 변경\n"
+            $infra-config-db && summary="${summary}- infra-config-db 변경\n"
+
+            echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+            echo -e "$summary" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+
+            # github-script로 넘길 labels(JSON 배열)
+            json="$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)"
+            echo "labels=$json" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR + Add Labels
+        if: steps.changes.outputs.should_create == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PAT_PR_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const head = context.ref.replace('refs/heads/', ''); // develop
+            const base = 'main';
+
+            // 기존 PR 있는지 확인
+            const { data: pulls } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: 'open',
+              head: `${owner}:${head}`,
+              base,
+            });
+
+            if (pulls.length > 0) {
+              core.info(`Existing PR #${pulls[0].number} found. Skipping creation.`);
+              return;
+            }
+
+            const summary = `${{ toJSON(steps.changes.outputs.summary) }}`.replace(/^"|"$/g, '');
+            const labels = JSON.parse(`${{ steps.changes.outputs.labels }}`);
+
+            const body = [
+              '변경 사항을 검토 후 merge 해주세요!',
+              '',
+              '### 변경 범위(모노레포)',
+              summary,
+            ].join('\n');
+
+            // PR 생성
+            const pr = await github.rest.pulls.create({
+              owner,
+              repo,
+              head,
+              base,
+              title: `Auto PR: develop → main`,
+              body,
+            });
+
+            const prNumber = pr.data.number;
+            core.info(`Created PR #${prNumber}: ${pr.data.html_url}`);
+
+            // ✅ 라벨이 없으면 생성(선택이지만 안정적)
+            // GitHub 라벨은 색상이 필요함(6자리 hex, # 제외)
+            const labelColors = {
+              front: "1f6feb",
+              back: "238636",
+              flask: "a371f7",
+              infra-config-db: "f85149",
+            };
+
+            for (const name of labels) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (e) {
+                // 404면 생성
+                if (e.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name,
+                    color: labelColors[name] || "cccccc",
+                    description: `Changes in ${name}`,
+                  });
+                  core.info(`Created label: ${name}`);
+                } else {
+                  throw e;
+                }
+              }
+            }
+
+            // ✅ PR(=issue)에 라벨 부착
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels,
+            });
+
+            core.info(`Added labels to PR #${prNumber}: ${labels.join(', ')}`);

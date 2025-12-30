@@ -62,7 +62,7 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
-    - host: 13.124.109.82.nip.io
+    - host: 54.180.109.10.nip.io
       http:
         paths:
           - path: /api

@@ -15,7 +15,7 @@ pipeline {
         BUILD_CONTEXT = '.'
         
         // Deployment configuration
-        DEPLOY_SERVER = '13.124.109.82'
+        DEPLOY_SERVER = '54.180.109.10'
         DEPLOY_USER = 'ubuntu'
         DEPLOY_PATH = '/home/ubuntu/healthyreal-vue'
     }

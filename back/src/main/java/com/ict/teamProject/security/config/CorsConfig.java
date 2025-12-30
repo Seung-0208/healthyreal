@@ -14,7 +14,7 @@ public class CorsConfig {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true); //응답할때 json 자바스크립
 		config.addAllowedOriginPattern("*");
-//		config.addAllowedOrigin("http://13.124.109.82");
+//		config.addAllowedOrigin("http://54.180.109.10");
 		
 		config.addAllowedHeader("*"); // 모든 header 응답허용
 		config.addAllowedMethod("*"); // 모든 post,get....
